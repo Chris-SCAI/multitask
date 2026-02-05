@@ -27,7 +27,7 @@ export interface LLMResponse {
 // Default models per provider
 export const DEFAULT_MODELS: Record<LLMProvider, string> = {
   openai: 'gpt-4o-mini',
-  anthropic: 'claude-3-haiku-20240307',
+  anthropic: 'claude-sonnet-4-5-20250929',
   mistral: 'mistral-small-latest',
   openrouter: 'openai/gpt-4o-mini',
 }
@@ -89,7 +89,71 @@ export function isLLMConfigured(): boolean {
   return config !== null && config.apiKey.length > 0
 }
 
-// Call LLM API
+// Retry wrapper with exponential backoff
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 2,
+  baseDelay: number = 1000
+): Promise<T> {
+  let lastError: Error | null = null
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn()
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error))
+
+      // Don't retry on client errors (4xx)
+      if (lastError.message.includes('400') ||
+          lastError.message.includes('401') ||
+          lastError.message.includes('403')) {
+        throw lastError
+      }
+
+      if (attempt < maxRetries) {
+        const delay = baseDelay * Math.pow(2, attempt) // 1s, 2s, 4s
+        await new Promise(resolve => setTimeout(resolve, delay))
+      }
+    }
+  }
+
+  throw lastError
+}
+
+// Parse LLM JSON response with cleanup
+export function parseLLMJson<T>(content: string): T {
+  // Remove markdown code blocks
+  let cleaned = content.trim()
+  if (cleaned.startsWith('```json')) {
+    cleaned = cleaned.slice(7)
+  } else if (cleaned.startsWith('```')) {
+    cleaned = cleaned.slice(3)
+  }
+  if (cleaned.endsWith('```')) {
+    cleaned = cleaned.slice(0, -3)
+  }
+  cleaned = cleaned.trim()
+
+  // Extract JSON between first { and last }
+  const firstBrace = cleaned.indexOf('{')
+  const lastBrace = cleaned.lastIndexOf('}')
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+    cleaned = cleaned.slice(firstBrace, lastBrace + 1)
+  }
+
+  // Try direct parse
+  try {
+    return JSON.parse(cleaned) as T
+  } catch {
+    // Fallback: fix trailing commas
+    const fixedCommas = cleaned
+      .replace(/,\s*}/g, '}')
+      .replace(/,\s*]/g, ']')
+    return JSON.parse(fixedCommas) as T
+  }
+}
+
+// Call LLM API via server proxy
 export async function callLLM(
   messages: LLMMessage[],
   config?: LLMConfig
@@ -102,176 +166,25 @@ export async function callLLM(
   const { provider, apiKey, model } = llmConfig
   const selectedModel = model || DEFAULT_MODELS[provider]
 
-  switch (provider) {
-    case 'openai':
-      return callOpenAI(messages, apiKey, selectedModel)
-    case 'anthropic':
-      return callAnthropic(messages, apiKey, selectedModel)
-    case 'mistral':
-      return callMistral(messages, apiKey, selectedModel)
-    case 'openrouter':
-      return callOpenRouter(messages, apiKey, selectedModel)
-    default:
-      throw new Error(`Unknown provider: ${provider}`)
-  }
-}
+  return withRetry(async () => {
+    const response = await fetch('/api/ai', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        provider,
+        apiKey,
+        model: selectedModel,
+        messages,
+      }),
+    })
 
-// OpenAI API
-async function callOpenAI(
-  messages: LLMMessage[],
-  apiKey: string,
-  model: string
-): Promise<LLMResponse> {
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model,
-      messages,
-      temperature: 0.7,
-    }),
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(error.error || `API error: ${response.status}`)
+    }
+
+    return response.json()
   })
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.error?.message || `OpenAI API error: ${response.status}`)
-  }
-
-  const data = await response.json()
-  return {
-    content: data.choices[0].message.content,
-    provider: 'openai',
-    model,
-    usage: data.usage ? {
-      promptTokens: data.usage.prompt_tokens,
-      completionTokens: data.usage.completion_tokens,
-      totalTokens: data.usage.total_tokens,
-    } : undefined,
-  }
-}
-
-// Anthropic API
-async function callAnthropic(
-  messages: LLMMessage[],
-  apiKey: string,
-  model: string
-): Promise<LLMResponse> {
-  // Extract system message if present
-  const systemMessage = messages.find(m => m.role === 'system')
-  const otherMessages = messages.filter(m => m.role !== 'system')
-
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: 1024,
-      system: systemMessage?.content,
-      messages: otherMessages.map(m => ({
-        role: m.role === 'assistant' ? 'assistant' : 'user',
-        content: m.content,
-      })),
-    }),
-  })
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.error?.message || `Anthropic API error: ${response.status}`)
-  }
-
-  const data = await response.json()
-  return {
-    content: data.content[0].text,
-    provider: 'anthropic',
-    model,
-    usage: data.usage ? {
-      promptTokens: data.usage.input_tokens,
-      completionTokens: data.usage.output_tokens,
-      totalTokens: data.usage.input_tokens + data.usage.output_tokens,
-    } : undefined,
-  }
-}
-
-// Mistral API
-async function callMistral(
-  messages: LLMMessage[],
-  apiKey: string,
-  model: string
-): Promise<LLMResponse> {
-  const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model,
-      messages,
-      temperature: 0.7,
-    }),
-  })
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.message || `Mistral API error: ${response.status}`)
-  }
-
-  const data = await response.json()
-  return {
-    content: data.choices[0].message.content,
-    provider: 'mistral',
-    model,
-    usage: data.usage ? {
-      promptTokens: data.usage.prompt_tokens,
-      completionTokens: data.usage.completion_tokens,
-      totalTokens: data.usage.total_tokens,
-    } : undefined,
-  }
-}
-
-// OpenRouter API
-async function callOpenRouter(
-  messages: LLMMessage[],
-  apiKey: string,
-  model: string
-): Promise<LLMResponse> {
-  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
-      'HTTP-Referer': window.location.origin,
-      'X-Title': 'MultiTask Pro',
-    },
-    body: JSON.stringify({
-      model,
-      messages,
-      temperature: 0.7,
-    }),
-  })
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.error?.message || `OpenRouter API error: ${response.status}`)
-  }
-
-  const data = await response.json()
-  return {
-    content: data.choices[0].message.content,
-    provider: 'openrouter',
-    model,
-    usage: data.usage ? {
-      promptTokens: data.usage.prompt_tokens,
-      completionTokens: data.usage.completion_tokens,
-      totalTokens: data.usage.total_tokens,
-    } : undefined,
-  }
 }
