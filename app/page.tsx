@@ -1,27 +1,27 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { Task, Workspace, Subtask, ViewMode } from '../lib/types'
-import { useStore } from '../hooks/useStore'
-import { getSubtasksByTask } from '../lib/store'
-import { Cockpit } from '../components/dashboard/Cockpit'
-import { PriorityView } from '../components/dashboard/PriorityView'
-import { CalendarView } from '../components/calendar/CalendarView'
-import { WorkspaceCard } from '../components/workspace/WorkspaceCard'
-import { TaskCard } from '../components/task/TaskCard'
-import { TaskForm } from '../components/task/TaskForm'
-import { QuickAdd } from '../components/task/QuickAdd'
-import { SubtaskList } from '../components/task/SubtaskList'
-import { Modal } from '../components/ui/Modal'
-import { Button } from '../components/ui/Button'
-import { NotificationBanner } from '../components/ui/NotificationBanner'
-import { SettingsModal } from '../components/settings/SettingsModal'
-import { EmptyTasksState } from '../components/ui/EmptyState'
-import { Sidebar } from '../components/layout/Sidebar'
-import { EisenhowerButton } from '../components/ai/EisenhowerButton'
-import { DurationPredictor } from '../components/ai/DurationPredictor'
-import { TaskAssistant } from '../components/ai/TaskAssistant'
-import { useReminders } from '../hooks/useReminders'
+import { Task, Workspace, Subtask, ViewMode } from '../../lib/types'
+import { useStore } from '../../hooks/useStore'
+import { getSubtasksByTask } from '../../lib/store'
+import { Cockpit } from '../../components/dashboard/Cockpit'
+import { PriorityView } from '../../components/dashboard/PriorityView'
+import { CalendarView } from '../../components/calendar/CalendarView'
+import { WorkspaceCard } from '../../components/workspace/WorkspaceCard'
+import { TaskCard } from '../../components/task/TaskCard'
+import { TaskForm } from '../../components/task/TaskForm'
+import { QuickAdd } from '../../components/task/QuickAdd'
+import { SubtaskList } from '../../components/task/SubtaskList'
+import { Modal } from '../../components/ui/Modal'
+import { Button } from '../../components/ui/Button'
+import { NotificationBanner } from '../../components/ui/NotificationBanner'
+import { SettingsModal } from '../../components/settings/SettingsModal'
+import { EmptyTasksState } from '../../components/ui/EmptyState'
+import { Sidebar } from '../../components/layout/Sidebar'
+import { EisenhowerButton } from '../../components/ai/EisenhowerButton'
+import { DurationPredictor } from '../../components/ai/DurationPredictor'
+import { TaskAssistant } from '../../components/ai/TaskAssistant'
+import { useReminders } from '../../hooks/useReminders'
 import {
   LayoutDashboard,
   Calendar,
@@ -33,7 +33,7 @@ import {
   Cloud,
   CloudOff,
 } from 'lucide-react'
-import { cn } from '../lib/utils'
+import { cn } from '../../lib/utils'
 
 export default function Home() {
   // Use the unified store (local or cloud based on auth)
