@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { Workspace } from '../../lib/types'
-import { 
-  createWorkspace, 
-  updateWorkspace, 
+import {
+  createWorkspace,
+  updateWorkspace,
   deleteWorkspace,
   getTaskTypes,
   addTaskType,
@@ -20,15 +20,13 @@ import {
 import { Modal } from '../ui/Modal'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
-import { Plus, Trash2, Edit3, Check, X, Briefcase, Tag, AlertTriangle, User, Bot, Key, Eye, EyeOff } from 'lucide-react'
-import { 
-  getLLMConfig, 
-  saveLLMConfig, 
-  clearLLMConfig, 
-  LLMProvider, 
-  LLMConfig,
-  PROVIDER_INFO,
-  DEFAULT_MODELS 
+import { Plus, Trash2, Edit3, Check, X, Briefcase, Tag, AlertTriangle, User, Bot, Sparkles } from 'lucide-react'
+import {
+  getSelectedModel,
+  saveSelectedModel,
+  AVAILABLE_MODELS,
+  DEFAULT_MODEL,
+  getModelInfo
 } from '../../lib/llm-providers'
 
 interface SettingsModalProps {
@@ -42,24 +40,23 @@ const EMOJI_OPTIONS = ['🏢', '🎓', '🤖', '🏗️', '🏠', '💪', '💼'
 const COLOR_OPTIONS = ['#ef4444', '#22c55e', '#eab308', '#f97316', '#8b5cf6', '#06b6d4', '#3b82f6', '#ec4899', '#14b8a6', '#6366f1', '#94a3b8']
 
 type TabType = 'profile' | 'ai' | 'workspaces' | 'types' | 'priorities'
+type ModelCategory = keyof typeof AVAILABLE_MODELS
 
 export function SettingsModal({ isOpen, onClose, workspaces, onWorkspacesChange }: SettingsModalProps) {
   const [activeTab, setActiveTab] = useState<TabType>('profile')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [isAdding, setIsAdding] = useState(false)
   const [formData, setFormData] = useState({ name: '', icon: '📁', color: '#6366f1' })
-  
+
   const [taskTypes, setTaskTypes] = useState<CustomTaskType[]>([])
   const [priorities, setPriorities] = useState<CustomPriority[]>([])
   const [userName, setUserNameState] = useState('')
   const [userNameSaved, setUserNameSaved] = useState(false)
-  
-  // LLM Config
-  const [llmProvider, setLlmProvider] = useState<LLMProvider>('openai')
-  const [llmApiKey, setLlmApiKey] = useState('')
-  const [llmModel, setLlmModel] = useState('')
-  const [showApiKey, setShowApiKey] = useState(false)
-  const [llmSaved, setLlmSaved] = useState(false)
+
+  // AI Model selection
+  const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL)
+  const [modelCategory, setModelCategory] = useState<ModelCategory>('recommended')
+  const [modelSaved, setModelSaved] = useState(false)
 
   useEffect(() => {
     if (isOpen) {
@@ -67,51 +64,25 @@ export function SettingsModal({ isOpen, onClose, workspaces, onWorkspacesChange 
       setPriorities(getPriorities())
       setUserNameState(getUserName())
       setUserNameSaved(false)
-      
-      // Load LLM config
-      const llmConfig = getLLMConfig()
-      if (llmConfig) {
-        setLlmProvider(llmConfig.provider)
-        setLlmApiKey(llmConfig.apiKey)
-        setLlmModel(llmConfig.model || '')
-      } else {
-        setLlmProvider('openai')
-        setLlmApiKey('')
-        setLlmModel('')
-      }
-      setLlmSaved(false)
+
+      // Load selected model
+      const model = getSelectedModel()
+      setSelectedModel(model)
+      setModelSaved(false)
     }
   }, [isOpen])
-  
+
   const handleSaveUserName = () => {
     setUserName(userName)
-    // Dispatch event pour que le Cockpit se mette à jour
     window.dispatchEvent(new Event('usernameChanged'))
-    // Feedback visuel
     setUserNameSaved(true)
     setTimeout(() => setUserNameSaved(false), 2000)
   }
 
-  const handleSaveLLM = () => {
-    if (llmApiKey.trim()) {
-      saveLLMConfig({
-        provider: llmProvider,
-        apiKey: llmApiKey.trim(),
-        model: llmModel.trim() || undefined,
-      })
-    } else {
-      clearLLMConfig()
-    }
-    setLlmSaved(true)
-    setTimeout(() => setLlmSaved(false), 2000)
-  }
-
-  const handleClearLLM = () => {
-    clearLLMConfig()
-    setLlmApiKey('')
-    setLlmModel('')
-    setLlmSaved(true)
-    setTimeout(() => setLlmSaved(false), 2000)
+  const handleSaveModel = () => {
+    saveSelectedModel(selectedModel)
+    setModelSaved(true)
+    setTimeout(() => setModelSaved(false), 2000)
   }
 
   const cancelEdit = () => {
@@ -184,7 +155,7 @@ export function SettingsModal({ isOpen, onClose, workspaces, onWorkspacesChange 
   // Priority handlers
   const handleUpdatePriority = (id: string) => {
     if (!formData.name.trim()) return
-    const bgColor = `${formData.color}26` // 15% opacity
+    const bgColor = `${formData.color}26`
     updatePriority(id, {
       label: formData.name.trim(),
       icon: formData.icon,
@@ -197,10 +168,10 @@ export function SettingsModal({ isOpen, onClose, workspaces, onWorkspacesChange 
 
   const startEdit = (item: { id: string; icon: string; color: string } & { name?: string; label?: string }) => {
     setEditingId(item.id)
-    setFormData({ 
-      name: item.name || item.label || '', 
-      icon: item.icon, 
-      color: item.color 
+    setFormData({
+      name: item.name || item.label || '',
+      icon: item.icon,
+      color: item.color
     })
     setIsAdding(false)
   }
@@ -292,6 +263,16 @@ export function SettingsModal({ isOpen, onClose, workspaces, onWorkspacesChange 
     </div>
   )
 
+  const categoryLabels: Record<ModelCategory, string> = {
+    recommended: '⭐ Recommandés',
+    openai: '🤖 OpenAI',
+    anthropic: '🧠 Anthropic',
+    google: '✨ Google',
+    mistral: '🌬️ Mistral',
+    deepseek: '🐋 DeepSeek',
+    free: '🆓 Gratuits',
+  }
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Paramètres" size="lg">
       <div className="space-y-6">
@@ -355,7 +336,7 @@ export function SettingsModal({ isOpen, onClose, workspaces, onWorkspacesChange 
                     placeholder="Entre ton prénom"
                     onKeyDown={e => e.key === 'Enter' && handleSaveUserName()}
                   />
-                  <Button 
+                  <Button
                     onClick={handleSaveUserName}
                     className={userNameSaved ? '!bg-green-600 !border-green-600' : ''}
                   >
@@ -370,95 +351,83 @@ export function SettingsModal({ isOpen, onClose, workspaces, onWorkspacesChange 
           </div>
         )}
 
-        {/* AI Tab */}
+        {/* AI Tab - Simplified for SaaS */}
         {activeTab === 'ai' && (
           <div>
-            <h3 className="text-lg font-semibold text-slate-100 mb-4">Configuration IA</h3>
+            <h3 className="text-lg font-semibold text-slate-100 mb-4">Assistant IA</h3>
             <div className="glass-card p-4 space-y-4">
-              <p className="text-sm text-white">
-                Configure ton API pour activer les fonctionnalités IA (Eisenhower, suggestions, etc.).
-                Ta clé API reste stockée localement sur ton appareil.
-              </p>
-              
-              {/* Provider selection */}
+              <div className="flex items-center gap-3 p-3 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
+                <Sparkles className="text-indigo-400" size={20} />
+                <p className="text-sm text-white">
+                  L'IA est incluse dans ton abonnement. Choisis le modèle qui te convient le mieux.
+                </p>
+              </div>
+
+              {/* Category selection */}
               <div>
                 <label className="block text-sm font-medium text-white mb-2">
-                  Fournisseur
+                  Catégorie
                 </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {(Object.keys(PROVIDER_INFO) as LLMProvider[]).map(provider => (
+                <div className="flex flex-wrap gap-2">
+                  {(Object.keys(AVAILABLE_MODELS) as ModelCategory[]).map(cat => (
                     <button
-                      key={provider}
-                      onClick={() => {
-                        setLlmProvider(provider)
-                        setLlmModel('')
-                      }}
-                      className={`flex items-center gap-2 p-3 rounded-xl border transition-all ${
-                        llmProvider === provider
-                          ? 'border-indigo-500 bg-indigo-500/20 text-indigo-300'
-                          : 'border-slate-600 text-white hover:border-slate-600'
+                      key={cat}
+                      onClick={() => setModelCategory(cat)}
+                      className={`px-3 py-1.5 rounded-lg text-sm transition-all ${
+                        modelCategory === cat
+                          ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500'
+                          : 'bg-slate-800 text-white border border-slate-700 hover:border-slate-600'
                       }`}
                     >
-                      <span className="text-lg">{PROVIDER_INFO[provider].icon}</span>
-                      <span className="font-medium">{PROVIDER_INFO[provider].name}</span>
+                      {categoryLabels[cat]}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* API Key */}
+              {/* Model selection */}
               <div>
                 <label className="block text-sm font-medium text-white mb-2">
-                  <Key size={14} className="inline mr-1" />
-                  Clé API {PROVIDER_INFO[llmProvider].name}
+                  Modèle
                 </label>
-                <div className="relative">
-                  <Input
-                    type={showApiKey ? 'text' : 'password'}
-                    value={llmApiKey}
-                    onChange={e => setLlmApiKey(e.target.value)}
-                    placeholder={PROVIDER_INFO[llmProvider].placeholder}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowApiKey(!showApiKey)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-100 hover:text-slate-100"
-                  >
-                    {showApiKey ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
+                <div className="space-y-2">
+                  {AVAILABLE_MODELS[modelCategory].map(model => (
+                    <button
+                      key={model.id}
+                      onClick={() => setSelectedModel(model.id)}
+                      className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${
+                        selectedModel === model.id
+                          ? 'border-indigo-500 bg-indigo-500/20'
+                          : 'border-slate-700 hover:border-slate-600 bg-slate-800/50'
+                      }`}
+                    >
+                      <span className="text-xl">{model.icon}</span>
+                      <div className="flex-1">
+                        <p className={`font-medium ${selectedModel === model.id ? 'text-indigo-300' : 'text-white'}`}>
+                          {model.name}
+                        </p>
+                        <p className="text-xs text-slate-400">{model.description}</p>
+                      </div>
+                      {selectedModel === model.id && (
+                        <Check size={18} className="text-indigo-400" />
+                      )}
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* Model (optional) */}
-              <div>
-                <label className="block text-sm font-medium text-white mb-2">
-                  Modèle (optionnel)
-                </label>
-                <Input
-                  value={llmModel}
-                  onChange={e => setLlmModel(e.target.value)}
-                  placeholder={`Par défaut: ${DEFAULT_MODELS[llmProvider]}`}
-                />
-              </div>
-
-              {/* Actions */}
-              <div className="flex gap-2 pt-2">
-                <Button 
-                  onClick={handleSaveLLM}
-                  className={llmSaved ? '!bg-green-600 !border-green-600' : ''}
+              {/* Current selection & Save */}
+              <div className="flex items-center justify-between pt-2">
+                <div className="text-sm text-slate-400">
+                  Actuel : <span className="text-white">{getModelInfo(selectedModel).name}</span>
+                </div>
+                <Button
+                  onClick={handleSaveModel}
+                  className={modelSaved ? '!bg-green-600 !border-green-600' : ''}
                 >
-                  <Check size={16} className="mr-1" /> {llmSaved ? 'Enregistré !' : 'Sauvegarder'}
+                  <Check size={16} className="mr-1" /> {modelSaved ? 'Enregistré !' : 'Sauvegarder'}
                 </Button>
-                {llmApiKey && (
-                  <Button variant="ghost" onClick={handleClearLLM}>
-                    <Trash2 size={16} className="mr-1" /> Supprimer
-                  </Button>
-                )}
               </div>
-              
-              <p className="text-xs text-slate-100">
-                💡 Obtiens ta clé API sur le site du fournisseur. OpenRouter permet d'utiliser plusieurs modèles avec une seule clé.
-              </p>
             </div>
           </div>
         )}
@@ -548,7 +517,7 @@ export function SettingsModal({ isOpen, onClose, workspaces, onWorkspacesChange 
                       priority,
                       () => startEdit(priority),
                       () => {},
-                      false // Can't delete priorities
+                      false
                     )
                   )}
                 </div>
