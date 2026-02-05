@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 // Types
-type LLMProvider = 'openai' | 'anthropic' | 'mistral' | 'openrouter' | 'google'
+type LLMProvider = 'openai' | 'anthropic' | 'mistral' | 'openrouter' | 'google' | 'deepseek'
 
 interface LLMMessage {
   role: 'system' | 'user' | 'assistant'
@@ -42,7 +42,7 @@ function validateRequest(body: unknown): body is RequestBody {
   if (!body || typeof body !== 'object') return false
   const b = body as Record<string, unknown>
 
-  const validProviders: LLMProvider[] = ['openai', 'anthropic', 'mistral', 'openrouter', 'google']
+  const validProviders: LLMProvider[] = ['openai', 'anthropic', 'mistral', 'openrouter', 'google', 'deepseek']
   if (!validProviders.includes(b.provider as LLMProvider)) return false
   if (typeof b.apiKey !== 'string' || b.apiKey.length === 0) return false
   if (typeof b.model !== 'string' || b.model.length === 0) return false
@@ -259,6 +259,39 @@ async function callGoogle(messages: LLMMessage[], apiKey: string, model: string)
   }
 }
 
+// DeepSeek API call (OpenAI-compatible)
+async function callDeepSeek(messages: LLMMessage[], apiKey: string, model: string) {
+  const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      messages,
+      temperature: 0.7,
+    }),
+  })
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}))
+    throw new Error(error.error?.message || `DeepSeek API error: ${response.status}`)
+  }
+
+  const data = await response.json()
+  return {
+    content: data.choices[0].message.content,
+    provider: 'deepseek' as const,
+    model,
+    usage: data.usage ? {
+      promptTokens: data.usage.prompt_tokens,
+      completionTokens: data.usage.completion_tokens,
+      totalTokens: data.usage.total_tokens,
+    } : undefined,
+  }
+}
+
 export async function POST(request: NextRequest) {
   // Get client IP for rate limiting
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ||
@@ -303,6 +336,9 @@ export async function POST(request: NextRequest) {
         break
       case 'google':
         result = await callGoogle(messages, apiKey, model)
+        break
+      case 'deepseek':
+        result = await callDeepSeek(messages, apiKey, model)
         break
       default:
         return NextResponse.json(
