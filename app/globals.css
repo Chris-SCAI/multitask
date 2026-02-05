@@ -4,6 +4,16 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Offset for fixed navbar */
+html {
+  scroll-padding-top: 80px;
+}
+
 :root {
   /* Backgrounds - deeper, richer darks */
   --bg-primary: #0a0f1a;
