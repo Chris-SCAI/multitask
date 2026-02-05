@@ -30,7 +30,7 @@ export const DEFAULT_MODELS: Record<LLMProvider, string> = {
   anthropic: 'claude-sonnet-4-5-20250929',
   mistral: 'mistral-small-latest',
   openrouter: 'openai/gpt-4o-mini',
-  google: 'gemini-1.5-flash',
+  google: 'gemini-2.0-flash',
 }
 
 // Provider display info
