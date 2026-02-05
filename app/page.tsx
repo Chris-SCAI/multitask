@@ -17,10 +17,12 @@ import {
   Target,
   Users,
   ChevronDown,
+  ChevronUp,
   Play,
   Check,
   Menu,
   X,
+  HelpCircle,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 
@@ -126,9 +128,79 @@ function Step({
   )
 }
 
+// FAQ Item component
+function FAQItem({
+  question,
+  answer,
+  isOpen,
+  onToggle
+}: {
+  question: string
+  answer: string
+  isOpen: boolean
+  onToggle: () => void
+}) {
+  return (
+    <div className="border-b border-slate-700/50 last:border-0">
+      <button
+        onClick={onToggle}
+        className="w-full py-5 flex items-center justify-between text-left group"
+      >
+        <span className="text-lg font-medium text-white group-hover:text-indigo-400 transition-colors pr-4">
+          {question}
+        </span>
+        <span className="flex-shrink-0 p-1 rounded-lg bg-slate-800 group-hover:bg-indigo-500/20 transition-colors">
+          {isOpen ? (
+            <ChevronUp className="w-5 h-5 text-indigo-400" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-slate-400 group-hover:text-indigo-400" />
+          )}
+        </span>
+      </button>
+      <div
+        className={cn(
+          "overflow-hidden transition-all duration-300 ease-in-out",
+          isOpen ? "max-h-96 opacity-100 pb-5" : "max-h-0 opacity-0"
+        )}
+      >
+        <p className="text-slate-400 leading-relaxed">{answer}</p>
+      </div>
+    </div>
+  )
+}
+
+// FAQ Data
+const faqData = [
+  {
+    question: "MultiTasks est-il vraiment gratuit ?",
+    answer: "Oui ! Le plan gratuit vous donne accès à 3 espaces de travail et 50 tâches actives, sans limite de temps. C'est parfait pour un usage personnel. Les fonctionnalités avancées comme l'IA et la synchronisation cloud sont disponibles dans les plans payants."
+  },
+  {
+    question: "Comment fonctionne l'IA de priorisation ?",
+    answer: "Notre IA analyse le titre, la description et le contexte de chaque tâche pour déterminer son urgence et son importance selon la matrice d'Eisenhower. Elle vous suggère ensuite une priorité et un nombre d'étoiles. Vous gardez toujours le contrôle final !"
+  },
+  {
+    question: "Mes données sont-elles sécurisées ?",
+    answer: "Absolument. Avec le plan gratuit, vos données restent 100% locales sur votre appareil. Avec les plans payants, la synchronisation cloud utilise un chiffrement de bout en bout. Nous ne revendons jamais vos données et sommes conformes au RGPD."
+  },
+  {
+    question: "Puis-je utiliser MultiTasks hors ligne ?",
+    answer: "Oui ! MultiTasks est une Progressive Web App (PWA). Une fois installée, l'application fonctionne entièrement hors ligne. Vos modifications seront synchronisées automatiquement dès que vous retrouverez une connexion internet."
+  },
+  {
+    question: "Comment annuler mon abonnement ?",
+    answer: "Vous pouvez annuler votre abonnement à tout moment depuis les paramètres de votre compte. Vous conserverez l'accès aux fonctionnalités premium jusqu'à la fin de votre période de facturation. Aucun engagement, aucune pénalité."
+  },
+  {
+    question: "Proposez-vous un essai gratuit des plans payants ?",
+    answer: "Oui, le plan Pro est disponible en essai gratuit pendant 14 jours, sans carte bancaire requise. Vous aurez accès à toutes les fonctionnalités pour tester l'IA et la synchronisation cloud avant de vous engager."
+  },
+]
+
 export default function LandingPage() {
   const [isVisible, setIsVisible] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [openFAQ, setOpenFAQ] = useState<number | null>(null)
   const tasksCounter = useCounter(10000, 2500)
   const usersCounter = useCounter(5000, 2500)
   const hoursCounter = useCounter(50000, 2500)
@@ -711,7 +783,7 @@ export default function LandingPage() {
           <div className="mt-16 text-center">
             <p className="text-slate-400">
               Des questions ?{' '}
-              <a href="#" className="text-indigo-400 hover:text-indigo-300 underline underline-offset-4">
+              <a href="#faq" className="text-indigo-400 hover:text-indigo-300 underline underline-offset-4">
                 Consultez notre FAQ
               </a>
               {' '}ou{' '}
@@ -723,8 +795,51 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* FAQ Section */}
+      <section id="faq" className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-800/30">
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-sm font-medium mb-6">
+              <HelpCircle className="w-4 h-4" />
+              FAQ
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+              Questions fréquentes
+            </h2>
+            <p className="text-lg text-slate-400">
+              Tout ce que vous devez savoir sur MultiTasks
+            </p>
+          </div>
+
+          <div className="bg-slate-800/50 rounded-2xl border border-slate-700/50 p-6 sm:p-8">
+            {faqData.map((faq, index) => (
+              <FAQItem
+                key={index}
+                question={faq.question}
+                answer={faq.answer}
+                isOpen={openFAQ === index}
+                onToggle={() => setOpenFAQ(openFAQ === index ? null : index)}
+              />
+            ))}
+          </div>
+
+          <div className="mt-12 text-center">
+            <p className="text-slate-400 mb-4">
+              Vous ne trouvez pas la réponse à votre question ?
+            </p>
+            <a
+              href="mailto:support@multitasks.app"
+              className="inline-flex items-center gap-2 text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
+            >
+              Contactez notre support
+              <ArrowRight className="w-4 h-4" />
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-800/30">
+      <section className="py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-3xl blur-3xl" />
