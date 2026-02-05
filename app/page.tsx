@@ -19,6 +19,8 @@ import {
   ChevronDown,
   Play,
   Check,
+  Menu,
+  X,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 
@@ -126,6 +128,7 @@ function Step({
 
 export default function LandingPage() {
   const [isVisible, setIsVisible] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const tasksCounter = useCounter(10000, 2500)
   const usersCounter = useCounter(5000, 2500)
   const hoursCounter = useCounter(50000, 2500)
@@ -150,25 +153,35 @@ export default function LandingPage() {
     return () => observer.disconnect()
   }, [])
 
+  // Close mobile menu when clicking a link
+  const handleMobileNavClick = () => {
+    setIsMobileMenuOpen(false)
+  }
+
   return (
     <div className="min-h-screen bg-slate-900 overflow-x-hidden">
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-slate-900/80 border-b border-slate-800/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
+            {/* Logo */}
             <div className="flex items-center gap-2">
               <span className="text-2xl">✨</span>
               <span className="text-xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
                 MultiTasks
               </span>
             </div>
+
+            {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-8">
               <a href="#features" className="text-slate-300 hover:text-white transition-colors">Fonctionnalités</a>
               <a href="#how-it-works" className="text-slate-300 hover:text-white transition-colors">Comment ça marche</a>
               <a href="#pricing" className="text-slate-300 hover:text-white transition-colors">Tarifs</a>
               <a href="#testimonials" className="text-slate-300 hover:text-white transition-colors">Témoignages</a>
             </div>
-            <div className="flex items-center gap-3">
+
+            {/* Desktop CTA */}
+            <div className="hidden md:flex items-center gap-3">
               <Link
                 href="/dashboard"
                 className="px-4 py-2 text-slate-300 hover:text-white transition-colors font-medium"
@@ -178,6 +191,75 @@ export default function LandingPage() {
               <Link
                 href="/dashboard"
                 className="px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-105"
+              >
+                Commencer gratuit
+              </Link>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden p-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
+              aria-label="Toggle menu"
+            >
+              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Menu */}
+        <div
+          className={cn(
+            "md:hidden absolute top-16 left-0 right-0 bg-slate-900/95 backdrop-blur-xl border-b border-slate-800/50 transition-all duration-300 ease-in-out",
+            isMobileMenuOpen
+              ? "opacity-100 translate-y-0 pointer-events-auto"
+              : "opacity-0 -translate-y-4 pointer-events-none"
+          )}
+        >
+          <div className="px-4 py-6 space-y-4">
+            {/* Mobile Navigation Links */}
+            <a
+              href="#features"
+              onClick={handleMobileNavClick}
+              className="block px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800/50 rounded-xl transition-colors"
+            >
+              Fonctionnalités
+            </a>
+            <a
+              href="#how-it-works"
+              onClick={handleMobileNavClick}
+              className="block px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800/50 rounded-xl transition-colors"
+            >
+              Comment ça marche
+            </a>
+            <a
+              href="#pricing"
+              onClick={handleMobileNavClick}
+              className="block px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800/50 rounded-xl transition-colors"
+            >
+              Tarifs
+            </a>
+            <a
+              href="#testimonials"
+              onClick={handleMobileNavClick}
+              className="block px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800/50 rounded-xl transition-colors"
+            >
+              Témoignages
+            </a>
+
+            {/* Mobile CTA */}
+            <div className="pt-4 border-t border-slate-800 space-y-3">
+              <Link
+                href="/dashboard"
+                onClick={handleMobileNavClick}
+                className="block w-full px-4 py-3 text-center text-slate-300 hover:text-white hover:bg-slate-800/50 rounded-xl transition-colors font-medium"
+              >
+                Connexion
+              </Link>
+              <Link
+                href="/dashboard"
+                onClick={handleMobileNavClick}
+                className="block w-full px-4 py-3 text-center bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-indigo-500/30"
               >
                 Commencer gratuit
               </Link>
