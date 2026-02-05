@@ -165,6 +165,7 @@ export default function LandingPage() {
             <div className="hidden md:flex items-center gap-8">
               <a href="#features" className="text-slate-300 hover:text-white transition-colors">Fonctionnalités</a>
               <a href="#how-it-works" className="text-slate-300 hover:text-white transition-colors">Comment ça marche</a>
+              <a href="#pricing" className="text-slate-300 hover:text-white transition-colors">Tarifs</a>
               <a href="#testimonials" className="text-slate-300 hover:text-white transition-colors">Témoignages</a>
             </div>
             <div className="flex items-center gap-3">
@@ -503,8 +504,145 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <section id="pricing" className="py-24 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+              Des tarifs simples et transparents
+            </h2>
+            <p className="text-lg text-slate-400 max-w-2xl mx-auto">
+              Commencez gratuitement, évoluez selon vos besoins
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {/* Free Plan */}
+            <div className="relative p-8 rounded-2xl bg-slate-800/50 border border-slate-700/50 hover:border-slate-600 transition-all duration-300">
+              <div className="mb-6">
+                <h3 className="text-xl font-bold text-white mb-2">Gratuit</h3>
+                <p className="text-slate-400 text-sm">Pour démarrer en douceur</p>
+              </div>
+              <div className="mb-6">
+                <span className="text-4xl font-extrabold text-white">0€</span>
+                <span className="text-slate-400">/mois</span>
+              </div>
+              <ul className="space-y-4 mb-8">
+                {[
+                  '3 espaces de travail',
+                  '50 tâches actives',
+                  'Vue calendrier',
+                  'Rappels basiques',
+                  'Stockage local',
+                ].map((feature, i) => (
+                  <li key={i} className="flex items-center gap-3 text-slate-300">
+                    <Check className="w-5 h-5 text-green-400 flex-shrink-0" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/dashboard"
+                className="block w-full py-3 px-4 text-center bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-xl transition-all duration-300"
+              >
+                Commencer gratuit
+              </Link>
+            </div>
+
+            {/* Pro Plan - Featured */}
+            <div className="relative p-8 rounded-2xl bg-gradient-to-br from-indigo-900/50 to-purple-900/50 border-2 border-indigo-500/50 hover:border-indigo-400 transition-all duration-300 transform scale-105 shadow-2xl shadow-indigo-500/20">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                <span className="px-4 py-1.5 bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-sm font-bold rounded-full shadow-lg">
+                  Populaire
+                </span>
+              </div>
+              <div className="mb-6">
+                <h3 className="text-xl font-bold text-white mb-2">Pro</h3>
+                <p className="text-slate-400 text-sm">Pour les professionnels exigeants</p>
+              </div>
+              <div className="mb-6">
+                <span className="text-4xl font-extrabold text-white">9€</span>
+                <span className="text-slate-400">/mois</span>
+              </div>
+              <ul className="space-y-4 mb-8">
+                {[
+                  'Espaces illimités',
+                  'Tâches illimitées',
+                  '🤖 IA Eisenhower',
+                  '🤖 Estimation durée IA',
+                  'Sync cloud multi-appareils',
+                  'Rappels intelligents',
+                  'Export PDF/CSV',
+                  'Support prioritaire',
+                ].map((feature, i) => (
+                  <li key={i} className="flex items-center gap-3 text-slate-300">
+                    <Check className="w-5 h-5 text-indigo-400 flex-shrink-0" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/dashboard"
+                className="block w-full py-3 px-4 text-center bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-bold rounded-xl transition-all duration-300 shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50"
+              >
+                Essai gratuit 14 jours
+              </Link>
+            </div>
+
+            {/* Team Plan */}
+            <div className="relative p-8 rounded-2xl bg-slate-800/50 border border-slate-700/50 hover:border-slate-600 transition-all duration-300">
+              <div className="mb-6">
+                <h3 className="text-xl font-bold text-white mb-2">Équipe</h3>
+                <p className="text-slate-400 text-sm">Pour collaborer efficacement</p>
+              </div>
+              <div className="mb-6">
+                <span className="text-4xl font-extrabold text-white">19€</span>
+                <span className="text-slate-400">/utilisateur/mois</span>
+              </div>
+              <ul className="space-y-4 mb-8">
+                {[
+                  'Tout le plan Pro',
+                  'Espaces partagés',
+                  'Collaboration temps réel',
+                  'Gestion des rôles',
+                  'Tableau de bord équipe',
+                  'Statistiques avancées',
+                  'API & Webhooks',
+                  'Support dédié',
+                ].map((feature, i) => (
+                  <li key={i} className="flex items-center gap-3 text-slate-300">
+                    <Check className="w-5 h-5 text-green-400 flex-shrink-0" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/dashboard"
+                className="block w-full py-3 px-4 text-center bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-xl transition-all duration-300"
+              >
+                Contacter les ventes
+              </Link>
+            </div>
+          </div>
+
+          {/* FAQ teaser */}
+          <div className="mt-16 text-center">
+            <p className="text-slate-400">
+              Des questions ?{' '}
+              <a href="#" className="text-indigo-400 hover:text-indigo-300 underline underline-offset-4">
+                Consultez notre FAQ
+              </a>
+              {' '}ou{' '}
+              <a href="#" className="text-indigo-400 hover:text-indigo-300 underline underline-offset-4">
+                contactez-nous
+              </a>
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8">
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-800/30">
         <div className="max-w-4xl mx-auto text-center">
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-3xl blur-3xl" />
