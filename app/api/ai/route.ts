@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 // Types
-type LLMProvider = 'openai' | 'anthropic' | 'mistral' | 'openrouter'
+type LLMProvider = 'openai' | 'anthropic' | 'mistral' | 'openrouter' | 'google'
 
 interface LLMMessage {
   role: 'system' | 'user' | 'assistant'
@@ -42,7 +42,7 @@ function validateRequest(body: unknown): body is RequestBody {
   if (!body || typeof body !== 'object') return false
   const b = body as Record<string, unknown>
 
-  const validProviders: LLMProvider[] = ['openai', 'anthropic', 'mistral', 'openrouter']
+  const validProviders: LLMProvider[] = ['openai', 'anthropic', 'mistral', 'openrouter', 'google']
   if (!validProviders.includes(b.provider as LLMProvider)) return false
   if (typeof b.apiKey !== 'string' || b.apiKey.length === 0) return false
   if (typeof b.model !== 'string' || b.model.length === 0) return false
@@ -193,6 +193,72 @@ async function callOpenRouter(messages: LLMMessage[], apiKey: string, model: str
   }
 }
 
+// Google Gemini API call
+async function callGoogle(messages: LLMMessage[], apiKey: string, model: string) {
+  // Convert messages to Gemini format
+  const systemMessage = messages.find(m => m.role === 'system')
+  const otherMessages = messages.filter(m => m.role !== 'system')
+
+  const contents = otherMessages.map(m => ({
+    role: m.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: m.content }],
+  }))
+
+  const requestBody: Record<string, unknown> = {
+    contents,
+    generationConfig: {
+      temperature: 0.7,
+      maxOutputTokens: 2048,
+    },
+  }
+
+  // Add system instruction if present
+  if (systemMessage) {
+    requestBody.systemInstruction = {
+      parts: [{ text: systemMessage.content }],
+    }
+  }
+
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    }
+  )
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}))
+    throw new Error(error.error?.message || `Google API error: ${response.status}`)
+  }
+
+  const data = await response.json()
+
+  // Handle safety blocks or empty responses
+  if (!data.candidates || data.candidates.length === 0) {
+    throw new Error('Google API returned no candidates (content may have been blocked)')
+  }
+
+  const candidate = data.candidates[0]
+  if (!candidate.content?.parts?.[0]?.text) {
+    throw new Error('Google API returned empty content')
+  }
+
+  return {
+    content: candidate.content.parts[0].text,
+    provider: 'google' as const,
+    model,
+    usage: data.usageMetadata ? {
+      promptTokens: data.usageMetadata.promptTokenCount,
+      completionTokens: data.usageMetadata.candidatesTokenCount,
+      totalTokens: data.usageMetadata.totalTokenCount,
+    } : undefined,
+  }
+}
+
 export async function POST(request: NextRequest) {
   // Get client IP for rate limiting
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ||
@@ -234,6 +300,9 @@ export async function POST(request: NextRequest) {
         break
       case 'openrouter':
         result = await callOpenRouter(messages, apiKey, model, referer)
+        break
+      case 'google':
+        result = await callGoogle(messages, apiKey, model)
         break
       default:
         return NextResponse.json(

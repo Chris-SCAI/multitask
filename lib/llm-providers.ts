@@ -1,6 +1,6 @@
 // LLM Providers - Multi-provider AI integration
 
-export type LLMProvider = 'openai' | 'anthropic' | 'mistral' | 'openrouter'
+export type LLMProvider = 'openai' | 'anthropic' | 'mistral' | 'openrouter' | 'google'
 
 export interface LLMConfig {
   provider: LLMProvider
@@ -30,6 +30,7 @@ export const DEFAULT_MODELS: Record<LLMProvider, string> = {
   anthropic: 'claude-sonnet-4-5-20250929',
   mistral: 'mistral-small-latest',
   openrouter: 'openai/gpt-4o-mini',
+  google: 'gemini-1.5-flash',
 }
 
 // Provider display info
@@ -53,6 +54,11 @@ export const PROVIDER_INFO: Record<LLMProvider, { name: string; icon: string; pl
     name: 'OpenRouter',
     icon: '🔀',
     placeholder: 'sk-or-...',
+  },
+  google: {
+    name: 'Google Gemini',
+    icon: '✨',
+    placeholder: 'AIza...',
   },
 }
 
