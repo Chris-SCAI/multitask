@@ -386,14 +386,22 @@ export default function LandingPage() {
                 Démarrer gratuitement
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <button className="flex items-center gap-2 px-8 py-4 bg-slate-800/50 hover:bg-slate-800 text-white font-semibold text-lg rounded-2xl border border-slate-700/50 hover:border-slate-600 transition-all duration-300">
+              <button
+                onClick={() => {
+                  const preview = document.getElementById('app-preview')
+                  if (preview) {
+                    preview.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                  }
+                }}
+                className="flex items-center gap-2 px-8 py-4 bg-slate-800/50 hover:bg-slate-800 text-white font-semibold text-lg rounded-2xl border border-slate-700/50 hover:border-slate-600 transition-all duration-300"
+              >
                 <Play className="w-5 h-5" />
                 Voir la démo
               </button>
             </div>
 
             {/* Hero image / App preview */}
-            <div className="relative mx-auto max-w-5xl">
+            <div id="app-preview" className="relative mx-auto max-w-5xl">
               <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent z-10 pointer-events-none" />
               <div className="relative rounded-2xl overflow-hidden border border-slate-700/50 shadow-2xl shadow-indigo-500/20">
                 <div className="bg-slate-800 px-4 py-3 flex items-center gap-2 border-b border-slate-700/50">
