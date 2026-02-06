@@ -20,7 +20,9 @@ import {
 import { Modal } from '../ui/Modal'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
-import { Plus, Trash2, Edit3, Check, X, Briefcase, Tag, AlertTriangle, User, Bot, Sparkles } from 'lucide-react'
+import { Plus, Trash2, Edit3, Check, X, Briefcase, Tag, AlertTriangle, User, Bot, Sparkles, CreditCard, Crown, Loader2 } from 'lucide-react'
+import { useSubscription } from '../../hooks/useSubscription'
+import { formatSubscriptionStatus } from '../../lib/stripe'
 import {
   getSelectedModel,
   saveSelectedModel,
@@ -39,11 +41,13 @@ interface SettingsModalProps {
 const EMOJI_OPTIONS = ['🏢', '🎓', '🤖', '🏗️', '🏠', '💪', '💼', '🎨', '🎯', '📊', '🚀', '💡', '🔧', '📱', '🌍', '👥', '📅', '📦', '📋', '📌', '🔥', '⚡', '🌱']
 const COLOR_OPTIONS = ['#ef4444', '#22c55e', '#eab308', '#f97316', '#8b5cf6', '#06b6d4', '#3b82f6', '#ec4899', '#14b8a6', '#6366f1', '#94a3b8']
 
-type TabType = 'profile' | 'ai' | 'workspaces' | 'types' | 'priorities'
+type TabType = 'profile' | 'subscription' | 'ai' | 'workspaces' | 'types' | 'priorities'
 type ModelCategory = keyof typeof AVAILABLE_MODELS
 
 export function SettingsModal({ isOpen, onClose, workspaces, onWorkspacesChange }: SettingsModalProps) {
   const [activeTab, setActiveTab] = useState<TabType>('profile')
+  const { plan, status, isTrialing, daysLeftInTrial, isPro, openPortal, startCheckout } = useSubscription()
+  const [portalLoading, setPortalLoading] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [isAdding, setIsAdding] = useState(false)
   const [formData, setFormData] = useState({ name: '', icon: '📁', color: '#6366f1' })
@@ -287,6 +291,14 @@ export function SettingsModal({ isOpen, onClose, workspaces, onWorkspacesChange 
             <User size={16} /> Profil
           </button>
           <button
+            onClick={() => { setActiveTab('subscription'); cancelEdit() }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+              activeTab === 'subscription' ? 'bg-indigo-500/20 text-indigo-300' : 'text-white hover:text-white'
+            }`}
+          >
+            <CreditCard size={16} /> Abonnement
+          </button>
+          <button
             onClick={() => { setActiveTab('ai'); cancelEdit() }}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
               activeTab === 'ai' ? 'bg-indigo-500/20 text-indigo-300' : 'text-white hover:text-white'
@@ -346,6 +358,111 @@ export function SettingsModal({ isOpen, onClose, workspaces, onWorkspacesChange 
                 <p className="text-xs text-slate-100 mt-2">
                   Ton prénom sera affiché dans le cockpit pour te saluer
                 </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Subscription Tab */}
+        {activeTab === 'subscription' && (
+          <div>
+            <h3 className="text-lg font-semibold text-slate-100 mb-4">Mon abonnement</h3>
+            <div className="glass-card p-4 space-y-4">
+              {/* Current Plan */}
+              <div className={`p-4 rounded-xl border ${
+                isPro
+                  ? 'bg-gradient-to-br from-indigo-900/30 to-purple-900/30 border-indigo-500/30'
+                  : 'bg-slate-800/50 border-slate-700'
+              }`}>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    {isPro ? (
+                      <Crown className="text-yellow-400" size={24} />
+                    ) : (
+                      <CreditCard className="text-slate-400" size={24} />
+                    )}
+                    <div>
+                      <h4 className="font-semibold text-white capitalize">
+                        Plan {plan}
+                      </h4>
+                      <p className="text-sm text-slate-400">
+                        {formatSubscriptionStatus(status)}
+                        {isTrialing && daysLeftInTrial > 0 && (
+                          <span className="ml-2 text-indigo-400">
+                            ({daysLeftInTrial} jours restants)
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  {plan === 'pro' && (
+                    <span className="px-3 py-1 bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs font-bold rounded-full">
+                      PRO
+                    </span>
+                  )}
+                  {plan === 'team' && (
+                    <span className="px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded-full">
+                      TEAM
+                    </span>
+                  )}
+                </div>
+
+                {/* Features based on plan */}
+                <div className="grid grid-cols-2 gap-2 mt-4">
+                  <div className={`flex items-center gap-2 text-sm ${isPro ? 'text-green-400' : 'text-slate-500'}`}>
+                    <Check size={14} /> IA Eisenhower
+                  </div>
+                  <div className={`flex items-center gap-2 text-sm ${isPro ? 'text-green-400' : 'text-slate-500'}`}>
+                    <Check size={14} /> Sync cloud
+                  </div>
+                  <div className={`flex items-center gap-2 text-sm ${isPro ? 'text-green-400' : 'text-slate-500'}`}>
+                    <Check size={14} /> Espaces illimites
+                  </div>
+                  <div className={`flex items-center gap-2 text-sm ${isPro ? 'text-green-400' : 'text-slate-500'}`}>
+                    <Check size={14} /> Support prioritaire
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex flex-col gap-3">
+                {plan === 'free' ? (
+                  <>
+                    <Button
+                      onClick={() => startCheckout('pro')}
+                      className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600"
+                    >
+                      <Crown size={16} className="mr-2" /> Passer a Pro - 9€/mois
+                    </Button>
+                    <p className="text-xs text-slate-400 text-center">
+                      14 jours d'essai gratuit, sans engagement
+                    </p>
+                  </>
+                ) : (
+                  <Button
+                    onClick={async () => {
+                      setPortalLoading(true)
+                      try {
+                        await openPortal()
+                      } finally {
+                        setPortalLoading(false)
+                      }
+                    }}
+                    disabled={portalLoading}
+                    variant="secondary"
+                    className="w-full"
+                  >
+                    {portalLoading ? (
+                      <>
+                        <Loader2 size={16} className="mr-2 animate-spin" /> Chargement...
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard size={16} className="mr-2" /> Gerer mon abonnement
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
             </div>
           </div>
