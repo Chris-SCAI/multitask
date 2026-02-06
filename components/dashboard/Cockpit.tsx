@@ -3,6 +3,7 @@
 import { useMemo, useState, useEffect } from 'react'
 import { Task, Workspace, Subtask, PRIORITY_CONFIG } from '../../lib/types'
 import { getUserName } from '../../lib/store'
+import { useAuth } from '@/hooks/useAuth'
 import { TaskCard } from '../task/TaskCard'
 import { format, isToday, isTomorrow, addDays, startOfDay, getHours } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -33,18 +34,26 @@ interface CockpitProps {
 
 export function Cockpit({ tasks, workspaces, subtaskInfo = {}, allSubtasks = [], onToggleTask, onToggleSubtask, onClickTask, onUpdateTask }: CockpitProps) {
   const today = startOfDay(new Date())
+  const { user } = useAuth()
   const [userName, setUserNameState] = useState('')
-  
+
   useEffect(() => {
-    setUserNameState(getUserName())
-    
-    const handleUserNameChange = () => {
+    // N'afficher le prénom que si l'utilisateur est connecté
+    if (user) {
       setUserNameState(getUserName())
+    } else {
+      setUserNameState('')
     }
-    
+
+    const handleUserNameChange = () => {
+      if (user) {
+        setUserNameState(getUserName())
+      }
+    }
+
     window.addEventListener('usernameChanged', handleUserNameChange)
     return () => window.removeEventListener('usernameChanged', handleUserNameChange)
-  }, [])
+  }, [user])
   
   // Tâches en retard
   const overdueTasks = useMemo(() => {
