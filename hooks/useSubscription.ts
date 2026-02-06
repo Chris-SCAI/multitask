@@ -36,8 +36,14 @@ export function useSubscription() {
         .eq('user_id', user.id)
         .single()
 
+      // PGRST116 = no rows found, 42P01 = table doesn't exist
       if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching subscription:', error)
+        // Table might not exist yet - silently ignore 404/42P01 errors
+        if (error.code === '42P01' || error.message?.includes('404') || error.message?.includes('does not exist')) {
+          console.warn('Subscriptions table not found - using default free plan')
+        } else {
+          console.error('Error fetching subscription:', error)
+        }
       }
 
       if (data) {
@@ -53,7 +59,7 @@ export function useSubscription() {
           createdAt: data.created_at,
         })
       } else {
-        // Default to free plan if no subscription exists
+        // Default to free plan if no subscription exists or table doesn't exist
         setSubscription({
           id: '',
           userId: user.id,
@@ -68,6 +74,18 @@ export function useSubscription() {
       }
     } catch (err) {
       console.error('Subscription fetch error:', err)
+      // On error, default to free plan
+      setSubscription({
+        id: '',
+        userId: user.id,
+        stripeCustomerId: null,
+        stripeSubscriptionId: null,
+        plan: 'free',
+        status: 'inactive',
+        currentPeriodEnd: null,
+        cancelAtPeriodEnd: false,
+        createdAt: new Date().toISOString(),
+      })
     } finally {
       setLoading(false)
     }
@@ -77,28 +95,34 @@ export function useSubscription() {
     fetchSubscription()
   }, [fetchSubscription])
 
-  // Listen to realtime updates
+  // Listen to realtime updates (only if table exists)
   useEffect(() => {
     if (!user) return
 
-    const channel = supabase
-      .channel('subscription-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'subscriptions',
-          filter: `user_id=eq.${user.id}`,
-        },
-        () => {
-          fetchSubscription()
-        }
-      )
-      .subscribe()
+    // Try to subscribe to realtime changes, but don't fail if table doesn't exist
+    try {
+      const channel = supabase
+        .channel('subscription-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'subscriptions',
+            filter: `user_id=eq.${user.id}`,
+          },
+          () => {
+            fetchSubscription()
+          }
+        )
+        .subscribe()
 
-    return () => {
-      supabase.removeChannel(channel)
+      return () => {
+        supabase.removeChannel(channel)
+      }
+    } catch (err) {
+      // Silently ignore if realtime subscription fails
+      console.warn('Could not subscribe to subscription changes:', err)
     }
   }, [user, fetchSubscription])
 
