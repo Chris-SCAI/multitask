@@ -22,6 +22,8 @@ import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 import { Plus, Trash2, Edit3, Check, X, Briefcase, Tag, AlertTriangle, User, Bot, Sparkles, CreditCard, Crown, Loader2 } from 'lucide-react'
 import { useSubscription } from '../../hooks/useSubscription'
+import { useAuth } from '../../hooks/useAuth'
+import { AuthModal } from '../auth/AuthModal'
 import { formatSubscriptionStatus } from '../../lib/stripe'
 import {
   getSelectedModel,
@@ -46,8 +48,11 @@ type ModelCategory = keyof typeof AVAILABLE_MODELS
 
 export function SettingsModal({ isOpen, onClose, workspaces, onWorkspacesChange }: SettingsModalProps) {
   const [activeTab, setActiveTab] = useState<TabType>('profile')
+  const { user } = useAuth()
   const { plan, status, isTrialing, daysLeftInTrial, isPro, openPortal, startCheckout } = useSubscription()
   const [portalLoading, setPortalLoading] = useState(false)
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [isAdding, setIsAdding] = useState(false)
   const [formData, setFormData] = useState({ name: '', icon: '📁', color: '#6366f1' })
@@ -278,6 +283,7 @@ export function SettingsModal({ isOpen, onClose, workspaces, onWorkspacesChange 
   }
 
   return (
+    <>
     <Modal isOpen={isOpen} onClose={onClose} title="Paramètres" size="lg">
       <div className="space-y-6">
         {/* Tabs */}
@@ -429,10 +435,33 @@ export function SettingsModal({ isOpen, onClose, workspaces, onWorkspacesChange 
                 {plan === 'free' ? (
                   <>
                     <Button
-                      onClick={() => startCheckout('pro')}
+                      onClick={async () => {
+                        if (!user) {
+                          setShowAuthModal(true)
+                          return
+                        }
+                        setCheckoutLoading(true)
+                        try {
+                          await startCheckout('pro')
+                        } catch (error) {
+                          console.error('Checkout error:', error)
+                          alert('Erreur lors du checkout. Veuillez réessayer.')
+                        } finally {
+                          setCheckoutLoading(false)
+                        }
+                      }}
+                      disabled={checkoutLoading}
                       className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600"
                     >
-                      <Crown size={16} className="mr-2" /> Passer a Pro - 9€/mois
+                      {checkoutLoading ? (
+                        <>
+                          <Loader2 size={16} className="mr-2 animate-spin" /> Chargement...
+                        </>
+                      ) : (
+                        <>
+                          <Crown size={16} className="mr-2" /> {user ? 'Passer à Pro - 9€/mois' : 'Créer un compte gratuit'}
+                        </>
+                      )}
                     </Button>
                     <p className="text-xs text-slate-400 text-center">
                       14 jours d'essai gratuit, sans engagement
@@ -644,5 +673,24 @@ export function SettingsModal({ isOpen, onClose, workspaces, onWorkspacesChange 
         )}
       </div>
     </Modal>
+
+    <AuthModal
+      isOpen={showAuthModal}
+      onClose={() => setShowAuthModal(false)}
+      onSuccess={async () => {
+        setShowAuthModal(false)
+        // Après connexion, lancer le checkout
+        setCheckoutLoading(true)
+        try {
+          await startCheckout('pro')
+        } catch (error) {
+          console.error('Checkout error:', error)
+          alert('Erreur lors du checkout. Veuillez réessayer.')
+        } finally {
+          setCheckoutLoading(false)
+        }
+      }}
+    />
+    </>
   )
 }
