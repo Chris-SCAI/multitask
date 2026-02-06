@@ -51,7 +51,6 @@ export function UpgradeModal({ isOpen, onClose, feature, currentLimit }: Upgrade
 
   const handleUpgrade = async () => {
     if (!user) {
-      // Show auth modal first
       setShowAuthModal(true)
       return
     }

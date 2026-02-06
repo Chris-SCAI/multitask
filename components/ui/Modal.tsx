@@ -46,16 +46,16 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
       {/* Backdrop */}
       <div
         className={cn(
-          'absolute inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity duration-300',
+          'absolute inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity duration-300 z-0',
           isAnimating ? 'opacity-100' : 'opacity-0'
         )}
         onClick={onClose}
       />
-      
+
       {/* Modal */}
       <div
         className={cn(
-          'relative glass-card p-6 w-full transition-all duration-300 ease-out',
+          'relative z-10 glass-card p-6 w-full transition-all duration-300 ease-out',
           isAnimating 
             ? 'opacity-100 scale-100 translate-y-0' 
             : 'opacity-0 scale-95 translate-y-4',
