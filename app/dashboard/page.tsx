@@ -18,6 +18,7 @@ import { NotificationBanner } from '../../components/ui/NotificationBanner'
 import { SettingsModal } from '../../components/settings/SettingsModal'
 import { EmptyTasksState } from '../../components/ui/EmptyState'
 import { Sidebar } from '../../components/layout/Sidebar'
+import { AuthModal } from '../../components/auth/AuthModal'
 import { EisenhowerButton } from '../../components/ai/EisenhowerButton'
 import { DurationPredictor } from '../../components/ai/DurationPredictor'
 import { TaskAssistant } from '../../components/ai/TaskAssistant'
@@ -40,15 +41,26 @@ import {
 import { cn } from '../../lib/utils'
 
 // Checkout handler component (needs Suspense for useSearchParams)
-function CheckoutHandler() {
-  const { user } = useAuth()
+function CheckoutHandler({ onNeedAuth }: { onNeedAuth: () => void }) {
+  const { user, loading } = useAuth()
   const { startCheckout } = useSubscription()
   const searchParams = useSearchParams()
 
   useEffect(() => {
     const checkoutPlan = searchParams.get('checkout') || sessionStorage.getItem('checkout_plan')
 
-    if (user && checkoutPlan && (checkoutPlan === 'pro' || checkoutPlan === 'team')) {
+    if (!checkoutPlan || (checkoutPlan !== 'pro' && checkoutPlan !== 'team')) {
+      return
+    }
+
+    // If not logged in and not loading, show auth modal
+    if (!user && !loading) {
+      onNeedAuth()
+      return
+    }
+
+    // If logged in, start checkout
+    if (user && checkoutPlan) {
       // Clear the stored intent
       sessionStorage.removeItem('checkout_plan')
       // Clear URL param
@@ -64,7 +76,7 @@ function CheckoutHandler() {
 
       return () => clearTimeout(timer)
     }
-  }, [user, searchParams, startCheckout])
+  }, [user, loading, searchParams, startCheckout, onNeedAuth])
 
   return null
 }
@@ -101,6 +113,7 @@ export default function Home() {
   const [isTaskDetailOpen, setIsTaskDetailOpen] = useState(false)
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
   const [taskSubtasks, setTaskSubtasks] = useState<Subtask[]>([])
 
   // Subtask info par tâche (total + completed)
@@ -227,8 +240,14 @@ export default function Home() {
     <div className="min-h-screen pb-24">
       {/* Checkout handler for redirect after login */}
       <Suspense fallback={null}>
-        <CheckoutHandler />
+        <CheckoutHandler onNeedAuth={() => setIsAuthModalOpen(true)} />
       </Suspense>
+
+      {/* Auth Modal for checkout flow */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+      />
 
       {/* Sync status indicator */}
       {isCloud && (
