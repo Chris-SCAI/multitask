@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { MessageCircle, Send, X, Loader2, Bot, User } from 'lucide-react'
+import { MessageCircle, Send, X, Loader2, Bot, User, Lock } from 'lucide-react'
 import { Task, Workspace } from '../../lib/types'
 import { askTaskAssistant, AssistantMessage } from '../../lib/ai-features'
 import { isLLMConfigured } from '../../lib/llm-providers'
+import { useFeatureAccess } from '../../hooks/useFeatureAccess'
+import { UpgradeModal } from '../ui/UpgradeModal'
 
 interface TaskAssistantProps {
   tasks: Task[]
@@ -24,7 +26,10 @@ export function TaskAssistant({ tasks, workspaces }: TaskAssistantProps) {
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  const featureAccess = useFeatureAccess()
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -37,6 +42,12 @@ export function TaskAssistant({ tasks, workspaces }: TaskAssistantProps) {
   const handleSend = async (question?: string) => {
     const q = question || input.trim()
     if (!q) return
+
+    // Check if AI is enabled for this plan
+    if (!featureAccess.canUseAI()) {
+      setShowUpgradeModal(true)
+      return
+    }
 
     if (!isLLMConfigured()) {
       setError('IA non configurée. Ajoutez votre clé API dans les paramètres.')
@@ -78,15 +89,29 @@ export function TaskAssistant({ tasks, workspaces }: TaskAssistantProps) {
     }
   }
 
+  const aiEnabled = featureAccess.canUseAI()
+
   return (
     <>
       {/* Floating button */}
       <button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-40 p-4 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white rounded-full shadow-lg shadow-purple-500/30 transition-all hover:scale-105"
+        onClick={() => aiEnabled ? setIsOpen(true) : setShowUpgradeModal(true)}
+        className={`fixed bottom-6 right-6 z-40 p-4 ${
+          aiEnabled
+            ? 'bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 shadow-purple-500/30'
+            : 'bg-slate-700 hover:bg-slate-600 shadow-slate-900/30'
+        } text-white rounded-full shadow-lg transition-all hover:scale-105`}
+        title={aiEnabled ? 'Assistant IA' : 'IA - Fonctionnalité Pro'}
       >
-        <MessageCircle size={24} />
+        {aiEnabled ? <MessageCircle size={24} /> : <Lock size={24} />}
       </button>
+
+      {/* Upgrade modal */}
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        feature="ai"
+      />
 
       {/* Chat panel */}
       {isOpen && (

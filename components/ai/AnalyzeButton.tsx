@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Sparkles, Clock, Users, AlertTriangle, ArrowUp, Lightbulb, ChevronDown, ChevronUp, X, Loader2, Download, Copy, Check, History, Filter } from 'lucide-react'
+import { Sparkles, Clock, Users, AlertTriangle, ArrowUp, Lightbulb, ChevronDown, ChevronUp, X, Loader2, Download, Copy, Check, History, Filter, Lock } from 'lucide-react'
 import { Task, Workspace, TaskType, TASK_TYPE_CONFIG } from '../../lib/types'
 import { analyzeAndOptimizeTasks, AnalysisResult, AnalysisPeriod } from '../../lib/ai-features'
 import { isLLMConfigured } from '../../lib/llm-providers'
+import { useFeatureAccess } from '../../hooks/useFeatureAccess'
+import { UpgradeModal } from '../ui/UpgradeModal'
 
 interface AnalyzeButtonProps {
   tasks: Task[]
@@ -82,18 +84,23 @@ export function AnalyzeButton({ tasks, workspaces, onApplyPriorityChange }: Anal
   const [result, setResult] = useState<AnalysisResult | null>(null)
   const [selectedPeriod, setSelectedPeriod] = useState<AnalysisPeriod>('week')
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['summary', 'insights']))
-  
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+
   // Filters
   const [showFilters, setShowFilters] = useState(false)
   const [selectedWorkspaces, setSelectedWorkspaces] = useState<string[]>([])
   const [selectedTaskTypes, setSelectedTaskTypes] = useState<TaskType[]>([])
-  
+
   // History
   const [history, setHistory] = useState<AnalysisHistoryItem[]>([])
   const [showHistory, setShowHistory] = useState(false)
-  
+
   // Export
   const [copied, setCopied] = useState(false)
+
+  // Feature access
+  const featureAccess = useFeatureAccess()
+  const aiEnabled = featureAccess.canUseAI()
 
   useEffect(() => {
     setHistory(loadHistory())
@@ -133,6 +140,10 @@ export function AnalyzeButton({ tasks, workspaces, onApplyPriorityChange }: Anal
   }
 
   const handleAnalyze = async () => {
+    if (!aiEnabled) {
+      setShowUpgradeModal(true)
+      return
+    }
     if (!isLLMConfigured()) {
       setError('IA non configurée. Ajoutez votre clé API dans les paramètres.')
       return
@@ -223,12 +234,17 @@ ${result.optimizations.map(o => `• ${o.description}`).join('\n')}` : ''}`
 
   return (
     <>
+      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} feature="ai" />
       <button
-        onClick={() => setIsOpen(true)}
-        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl font-medium transition-all shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40"
+        onClick={() => aiEnabled ? setIsOpen(true) : setShowUpgradeModal(true)}
+        className={`flex items-center gap-2 px-4 py-2 ${
+          aiEnabled
+            ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-purple-500/25 hover:shadow-purple-500/40'
+            : 'bg-slate-700 hover:bg-slate-600 shadow-slate-900/30'
+        } text-white rounded-xl font-medium transition-all shadow-lg`}
       >
-        <Sparkles size={18} />
-        <span>Analyser & Optimiser</span>
+        {aiEnabled ? <Sparkles size={18} /> : <Lock size={18} />}
+        <span>{aiEnabled ? 'Analyser & Optimiser' : 'IA Pro'}</span>
       </button>
 
       {isOpen && (

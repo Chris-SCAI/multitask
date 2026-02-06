@@ -5,7 +5,9 @@ import { Task } from '../../lib/types'
 import { classifyEisenhower, EisenhowerResult } from '../../lib/ai-features'
 import { isLLMConfigured } from '../../lib/llm-providers'
 import { Button } from '../ui/Button'
-import { Brain, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { Brain, Loader2, AlertCircle, CheckCircle2, Lock } from 'lucide-react'
+import { useFeatureAccess } from '../../hooks/useFeatureAccess'
+import { UpgradeModal } from '../ui/UpgradeModal'
 
 interface EisenhowerButtonProps {
   task: Task
@@ -48,10 +50,17 @@ export function EisenhowerButton({ task, onApply }: EisenhowerButtonProps) {
   const [result, setResult] = useState<EisenhowerResult | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [applied, setApplied] = useState(false)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
+  const featureAccess = useFeatureAccess()
   const isConfigured = isLLMConfigured()
+  const aiEnabled = featureAccess.canUseAI()
 
   const handleAnalyze = async () => {
+    if (!aiEnabled) {
+      setShowUpgradeModal(true)
+      return
+    }
     if (!isConfigured) {
       setError('Configure ton API IA dans Paramètres > IA')
       return
@@ -79,6 +88,23 @@ export function EisenhowerButton({ task, onApply }: EisenhowerButtonProps) {
     }
   }
 
+  if (!aiEnabled) {
+    return (
+      <>
+        <div
+          onClick={() => setShowUpgradeModal(true)}
+          className="p-3 rounded-xl bg-slate-800/70 border border-slate-600 cursor-pointer hover:border-violet-500/50 transition-colors"
+        >
+          <div className="flex items-center gap-2 text-white text-sm">
+            <Lock size={16} className="text-violet-400" />
+            <span>Analyse IA - Fonctionnalité Pro</span>
+          </div>
+        </div>
+        <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} feature="ai" />
+      </>
+    )
+  }
+
   if (!isConfigured) {
     return (
       <div className="p-3 rounded-xl bg-slate-800/70 border border-slate-600">
@@ -91,6 +117,8 @@ export function EisenhowerButton({ task, onApply }: EisenhowerButtonProps) {
   }
 
   return (
+    <>
+    <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} feature="ai" />
     <div className="space-y-3">
       {/* Analysis button */}
       {!result && (
@@ -179,5 +207,6 @@ export function EisenhowerButton({ task, onApply }: EisenhowerButtonProps) {
         </button>
       )}
     </div>
+    </>
   )
 }

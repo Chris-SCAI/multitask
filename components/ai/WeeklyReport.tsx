@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { BarChart3, Trophy, AlertTriangle, TrendingUp, Calendar, Loader2, X, RefreshCw, Lightbulb, CheckCircle2 } from 'lucide-react'
+import { BarChart3, Trophy, AlertTriangle, TrendingUp, Calendar, Loader2, X, RefreshCw, Lightbulb, CheckCircle2, Lock } from 'lucide-react'
 import { Task, Workspace } from '../../lib/types'
 import { generateWeeklyReport, WeeklyReportResult } from '../../lib/ai-features'
 import { isLLMConfigured } from '../../lib/llm-providers'
+import { useFeatureAccess } from '../../hooks/useFeatureAccess'
+import { UpgradeModal } from '../ui/UpgradeModal'
 
 interface WeeklyReportProps {
   tasks: Task[]
@@ -30,8 +32,16 @@ export function WeeklyReport({ tasks, workspaces }: WeeklyReportProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [report, setReport] = useState<WeeklyReportResult | null>(null)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+
+  const featureAccess = useFeatureAccess()
+  const aiEnabled = featureAccess.canUseAI()
 
   const handleGenerate = async () => {
+    if (!aiEnabled) {
+      setShowUpgradeModal(true)
+      return
+    }
     if (!isLLMConfigured()) {
       setError('IA non configurée. Ajoutez votre clé API dans les paramètres.')
       return
@@ -52,15 +62,24 @@ export function WeeklyReport({ tasks, workspaces }: WeeklyReportProps) {
 
   return (
     <>
+      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} feature="ai" />
       <button
         onClick={() => {
+          if (!aiEnabled) {
+            setShowUpgradeModal(true)
+            return
+          }
           setIsOpen(true)
           if (!report) handleGenerate()
         }}
-        className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-100 rounded-xl font-medium transition-all border border-slate-600"
+        className={`flex items-center gap-2 px-4 py-2 ${
+          aiEnabled
+            ? 'bg-slate-800 hover:bg-slate-700'
+            : 'bg-slate-700 hover:bg-slate-600'
+        } text-slate-100 rounded-xl font-medium transition-all border border-slate-600`}
       >
-        <BarChart3 size={18} className="text-sky-300" />
-        <span>Rapport hebdo</span>
+        {aiEnabled ? <BarChart3 size={18} className="text-sky-300" /> : <Lock size={18} className="text-violet-400" />}
+        <span>{aiEnabled ? 'Rapport hebdo' : 'Pro'}</span>
       </button>
 
       {isOpen && (

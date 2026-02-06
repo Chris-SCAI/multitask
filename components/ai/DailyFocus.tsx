@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { Target, Clock, Zap, Battery, BatteryLow, Loader2, RefreshCw, Lightbulb } from 'lucide-react'
+import { Target, Clock, Zap, Battery, BatteryLow, Loader2, RefreshCw, Lightbulb, Lock } from 'lucide-react'
 import { Task, Workspace } from '../../lib/types'
 import { getDailyFocus, DailyFocusResult, FocusTask } from '../../lib/ai-features'
 import { isLLMConfigured } from '../../lib/llm-providers'
+import { useFeatureAccess } from '../../hooks/useFeatureAccess'
+import { UpgradeModal } from '../ui/UpgradeModal'
 
 interface DailyFocusProps {
   tasks: Task[]
@@ -22,8 +24,16 @@ export function DailyFocus({ tasks, workspaces, onClickTask }: DailyFocusProps) 
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<DailyFocusResult | null>(null)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+
+  const featureAccess = useFeatureAccess()
+  const aiEnabled = featureAccess.canUseAI()
 
   const handleGetFocus = async () => {
+    if (!aiEnabled) {
+      setShowUpgradeModal(true)
+      return
+    }
     if (!isLLMConfigured()) {
       setError('IA non configurée. Ajoutez votre clé API dans les paramètres.')
       return
@@ -45,32 +55,39 @@ export function DailyFocus({ tasks, workspaces, onClickTask }: DailyFocusProps) 
   // Not loaded yet - show button
   if (!result && !isLoading) {
     return (
-      <div className="glass-card p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20">
-              <Target size={24} className="text-emerald-400" />
+      <>
+        <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} feature="ai" />
+        <div className="glass-card p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-xl ${aiEnabled ? 'bg-gradient-to-br from-emerald-500/20 to-teal-500/20' : 'bg-slate-700/50'}`}>
+                {aiEnabled ? <Target size={24} className="text-emerald-400" /> : <Lock size={24} className="text-violet-400" />}
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-100">Focus du jour</h3>
+                <p className="text-sm text-white">{aiEnabled ? 'Tes 3 priorités pour aujourd\'hui' : 'Fonctionnalité Pro'}</p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-bold text-slate-100">Focus du jour</h3>
-              <p className="text-sm text-white">Tes 3 priorités pour aujourd'hui</p>
-            </div>
+            <button
+              onClick={aiEnabled ? handleGetFocus : () => setShowUpgradeModal(true)}
+              disabled={isLoading}
+              className={`flex items-center gap-2 px-4 py-2 ${
+                aiEnabled
+                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 shadow-emerald-500/25'
+                  : 'bg-slate-700 hover:bg-slate-600'
+              } text-white rounded-xl font-medium transition-all shadow-lg`}
+            >
+              {aiEnabled ? <Target size={18} /> : <Lock size={18} />}
+              <span>{aiEnabled ? 'Générer' : 'Pro'}</span>
+            </button>
           </div>
-          <button
-            onClick={handleGetFocus}
-            disabled={isLoading}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl font-medium transition-all shadow-lg shadow-emerald-500/25"
-          >
-            <Target size={18} />
-            <span>Générer</span>
-          </button>
+          {error && (
+            <div className="mt-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-rose-300 text-sm">
+              {error}
+            </div>
+          )}
         </div>
-        {error && (
-          <div className="mt-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-rose-300 text-sm">
-            {error}
-          </div>
-        )}
-      </div>
+      </>
     )
   }
 

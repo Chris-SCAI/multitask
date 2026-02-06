@@ -19,12 +19,14 @@ import { SettingsModal } from '../../components/settings/SettingsModal'
 import { EmptyTasksState } from '../../components/ui/EmptyState'
 import { Sidebar } from '../../components/layout/Sidebar'
 import { AuthModal } from '../../components/auth/AuthModal'
+import { UpgradeModal } from '../../components/ui/UpgradeModal'
 import { EisenhowerButton } from '../../components/ai/EisenhowerButton'
 import { DurationPredictor } from '../../components/ai/DurationPredictor'
 import { TaskAssistant } from '../../components/ai/TaskAssistant'
 import { useReminders } from '../../hooks/useReminders'
 import { useAuth } from '../../hooks/useAuth'
 import { useSubscription } from '../../hooks/useSubscription'
+import { useFeatureAccess } from '../../hooks/useFeatureAccess'
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import {
@@ -114,7 +116,11 @@ export default function Home() {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
+  const [upgradeModal, setUpgradeModal] = useState<{ open: boolean; feature: 'workspace' | 'task' | 'ai' }>({ open: false, feature: 'workspace' })
   const [taskSubtasks, setTaskSubtasks] = useState<Subtask[]>([])
+
+  // Feature access (limits based on plan)
+  const featureAccess = useFeatureAccess(workspaces.length, tasks.length)
 
   // Subtask info par tâche (total + completed)
   const subtaskInfo = useMemo(() => {
@@ -144,11 +150,21 @@ export default function Home() {
 
   // Task handlers
   const handleCreateTask = useCallback(async (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
+    // Check task limit
+    if (!featureAccess.canCreateTask(tasks.length)) {
+      setUpgradeModal({ open: true, feature: 'task' })
+      return
+    }
     await createTask(taskData)
     setIsTaskFormOpen(false)
-  }, [createTask])
+  }, [createTask, featureAccess, tasks.length])
 
   const handleQuickAddTask = useCallback(async (title: string, workspaceId: string) => {
+    // Check task limit
+    if (!featureAccess.canCreateTask(tasks.length)) {
+      setUpgradeModal({ open: true, feature: 'task' })
+      return
+    }
     await createTask({
       title,
       workspaceId,
@@ -157,7 +173,7 @@ export default function Home() {
       recurrence: 'none',
       completed: false,
     })
-  }, [createTask])
+  }, [createTask, featureAccess, tasks.length])
 
   const handleToggleTask = useCallback(async (id: string) => {
     await toggleTaskComplete(id)
@@ -247,6 +263,17 @@ export default function Home() {
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
+      />
+
+      {/* Upgrade Modal for feature limits */}
+      <UpgradeModal
+        isOpen={upgradeModal.open}
+        onClose={() => setUpgradeModal({ ...upgradeModal, open: false })}
+        feature={upgradeModal.feature}
+        currentLimit={
+          upgradeModal.feature === 'workspace' ? featureAccess.maxWorkspaces :
+          upgradeModal.feature === 'task' ? featureAccess.maxTasks : undefined
+        }
       />
 
       {/* Sync status indicator */}

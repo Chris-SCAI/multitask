@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { Clock, Loader2, TrendingUp, Lightbulb } from 'lucide-react'
+import { Clock, Loader2, TrendingUp, Lightbulb, Lock } from 'lucide-react'
 import { Task } from '../../lib/types'
 import { predictDuration, DurationPrediction } from '../../lib/ai-features'
 import { isLLMConfigured } from '../../lib/llm-providers'
+import { useFeatureAccess } from '../../hooks/useFeatureAccess'
+import { UpgradeModal } from '../ui/UpgradeModal'
 
 interface DurationPredictorProps {
   task: Task
@@ -30,8 +32,16 @@ export function DurationPredictor({ task, subtasks = [], onApply }: DurationPred
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [prediction, setPrediction] = useState<DurationPrediction | null>(null)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+
+  const featureAccess = useFeatureAccess()
+  const aiEnabled = featureAccess.canUseAI()
 
   const handlePredict = async () => {
+    if (!aiEnabled) {
+      setShowUpgradeModal(true)
+      return
+    }
     if (!isLLMConfigured()) {
       setError('IA non configurée')
       return
@@ -50,25 +60,43 @@ export function DurationPredictor({ task, subtasks = [], onApply }: DurationPred
     }
   }
 
+  if (!aiEnabled) {
+    return (
+      <>
+        <button
+          onClick={() => setShowUpgradeModal(true)}
+          className="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm text-slate-100 transition-colors hover:border-violet-500/50"
+        >
+          <Lock size={16} className="text-violet-400" />
+          <span>Estimation IA - Pro</span>
+        </button>
+        <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} feature="ai" />
+      </>
+    )
+  }
+
   if (!prediction) {
     return (
-      <button
-        onClick={handlePredict}
-        disabled={isLoading}
-        className="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm text-slate-100 transition-colors disabled:opacity-50"
-      >
-        {isLoading ? (
-          <>
-            <Loader2 size={16} className="animate-spin" />
-            <span>Estimation...</span>
-          </>
-        ) : (
-          <>
-            <Clock size={16} className="text-cyan-300" />
-            <span>Estimer la durée</span>
-          </>
-        )}
-      </button>
+      <>
+        <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} feature="ai" />
+        <button
+          onClick={handlePredict}
+          disabled={isLoading}
+          className="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm text-slate-100 transition-colors disabled:opacity-50"
+        >
+          {isLoading ? (
+            <>
+              <Loader2 size={16} className="animate-spin" />
+              <span>Estimation...</span>
+            </>
+          ) : (
+            <>
+              <Clock size={16} className="text-cyan-300" />
+              <span>Estimer la durée</span>
+            </>
+          )}
+        </button>
+      </>
     )
   }
 
