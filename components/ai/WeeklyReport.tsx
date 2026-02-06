@@ -79,7 +79,7 @@ export function WeeklyReport({ tasks, workspaces }: WeeklyReportProps) {
         } text-slate-100 rounded-xl font-medium transition-all border border-slate-600`}
       >
         {aiEnabled ? <BarChart3 size={18} className="text-sky-300" /> : <Lock size={18} className="text-violet-400" />}
-        <span>{aiEnabled ? 'Rapport hebdo' : 'Pro'}</span>
+        <span>Rapport hebdo</span>
       </button>
 
       {isOpen && (

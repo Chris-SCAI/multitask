@@ -78,7 +78,7 @@ export function DailyFocus({ tasks, workspaces, onClickTask }: DailyFocusProps) 
               } text-white rounded-xl font-medium transition-all shadow-lg`}
             >
               {aiEnabled ? <Target size={18} /> : <Lock size={18} />}
-              <span>{aiEnabled ? 'Générer' : 'Pro'}</span>
+              <span>Générer</span>
             </button>
           </div>
           {error && (

@@ -244,7 +244,7 @@ ${result.optimizations.map(o => `• ${o.description}`).join('\n')}` : ''}`
         } text-white rounded-xl font-medium transition-all shadow-lg`}
       >
         {aiEnabled ? <Sparkles size={18} /> : <Lock size={18} />}
-        <span>{aiEnabled ? 'Analyser & Optimiser' : 'IA Pro'}</span>
+        <span>{aiEnabled ? 'Analyser & Optimiser' : 'Analyser'}</span>
       </button>
 
       {isOpen && (
