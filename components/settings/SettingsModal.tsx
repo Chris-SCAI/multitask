@@ -459,7 +459,7 @@ export function SettingsModal({ isOpen, onClose, workspaces, onWorkspacesChange 
                         </>
                       ) : (
                         <>
-                          <Crown size={16} className="mr-2" /> {user ? 'Passer à Pro - 9€/mois' : 'Créer un compte gratuit'}
+                          <Crown size={16} className="mr-2" /> {user ? 'Passer à Pro - 9,90€/mois' : 'Créer un compte gratuit'}
                         </>
                       )}
                     </Button>

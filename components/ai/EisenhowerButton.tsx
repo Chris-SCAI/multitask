@@ -122,24 +122,23 @@ export function EisenhowerButton({ task, onApply }: EisenhowerButtonProps) {
     <div className="space-y-3">
       {/* Analysis button */}
       {!result && (
-        <Button
+        <button
           onClick={handleAnalyze}
           disabled={loading}
-          variant="secondary"
-          className="w-full"
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 disabled:from-slate-600 disabled:to-slate-600 text-white rounded-xl font-medium transition-all shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40"
         >
           {loading ? (
             <>
-              <Loader2 size={16} className="mr-2 animate-spin" />
-              Analyse en cours...
+              <Loader2 size={16} className="animate-spin" />
+              <span>Analyse en cours...</span>
             </>
           ) : (
             <>
-              <Brain size={16} className="mr-2" />
-              Analyser (Eisenhower)
+              <Brain size={16} />
+              <span>Analyser (Eisenhower)</span>
             </>
           )}
-        </Button>
+        </button>
       )}
 
       {/* Error */}

@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import { motion, useInView, AnimatePresence } from 'framer-motion'
 import {
   CheckCircle2,
   Sparkles,
@@ -13,37 +14,81 @@ import {
   Smartphone,
   ArrowRight,
   Star,
-  Clock,
   Target,
-  Users,
   ChevronDown,
   ChevronUp,
   Check,
   Menu,
   X,
   HelpCircle,
+  AlertCircle,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { PricingCard } from '@/components/pricing/PricingCard'
 
-// Animated counter hook
-function useCounter(end: number, duration: number = 2000) {
-  const [count, setCount] = useState(0)
-  const [started, setStarted] = useState(false)
+// Branded MultiTasks component - always displays with icon + gradient
+function BrandedName({ withIcon = true, className = "" }: { withIcon?: boolean, className?: string }) {
+  return (
+    <span className={cn("inline-flex items-center gap-1", className)}>
+      {withIcon && <span className="text-indigo-400">✦</span>}
+      <span className="bg-gradient-to-r from-indigo-400 to-amber-300 bg-clip-text text-transparent font-bold">
+        MultiTasks
+      </span>
+    </span>
+  )
+}
 
-  useEffect(() => {
-    if (!started) return
-    let startTime: number
-    const step = (timestamp: number) => {
-      if (!startTime) startTime = timestamp
-      const progress = Math.min((timestamp - startTime) / duration, 1)
-      setCount(Math.floor(progress * end))
-      if (progress < 1) requestAnimationFrame(step)
-    }
-    requestAnimationFrame(step)
-  }, [started, end, duration])
+// Helper to replace "MultiTasks" in strings with branded component
+function formatWithBrand(text: string) {
+  const parts = text.split(/(MultiTasks)/g)
+  return parts.map((part, i) =>
+    part === 'MultiTasks' ? <BrandedName key={i} withIcon={false} /> : part
+  )
+}
 
-  return { count, start: () => setStarted(true) }
+// Animation variants
+const fadeInUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+}
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 }
+  }
+}
+
+const scaleIn = {
+  hidden: { opacity: 0, scale: 0.9 },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } }
+}
+
+// Animated Section wrapper
+function AnimatedSection({
+  children,
+  className,
+  delay = 0
+}: {
+  children: React.ReactNode
+  className?: string
+  delay?: number
+}) {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: "-100px" })
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 50 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
+      transition={{ duration: 0.6, delay }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  )
 }
 
 // Feature card component
@@ -91,7 +136,7 @@ function Testimonial({
           <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
         ))}
       </div>
-      <p className="text-slate-300 mb-6 italic">&ldquo;{quote}&rdquo;</p>
+      <p className="text-slate-300 mb-6 italic">&ldquo;{formatWithBrand(quote)}&rdquo;</p>
       <div className="flex items-center gap-3">
         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-xl">
           {avatar}
@@ -128,6 +173,241 @@ function Step({
   )
 }
 
+// Animated App Preview - Shows AI in action
+function AnimatedAppPreview() {
+  const [step, setStep] = useState(0)
+  const steps = [
+    { text: "Préparer présentation client Q4", type: "task" },
+    { text: "Analyse IA en cours...", type: "analyzing" },
+    { text: "Faire maintenant", type: "result", stars: 3 }
+  ]
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setStep((prev) => (prev + 1) % 4)
+    }, 2000)
+    return () => clearInterval(interval)
+  }, [])
+
+  return (
+    <div className="relative rounded-2xl overflow-hidden border border-slate-700/50 shadow-2xl shadow-indigo-500/20 bg-slate-900">
+      {/* Browser chrome */}
+      <div className="bg-slate-800 px-4 py-3 flex items-center border-b border-slate-700/50 relative">
+        <div className="flex gap-1.5">
+          <div className="w-3 h-3 rounded-full bg-red-500" />
+          <div className="w-3 h-3 rounded-full bg-yellow-500" />
+          <div className="w-3 h-3 rounded-full bg-green-500" />
+        </div>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-sm text-slate-400 font-medium">multitasks.fr</span>
+        </div>
+      </div>
+
+      {/* App content */}
+      <div className="p-6 min-h-[350px] bg-gradient-to-br from-slate-900 to-slate-800">
+        {/* Task input simulation */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-slate-800/80 rounded-xl p-4 border border-slate-700/50 mb-4"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 rounded border-2 border-slate-600" />
+            <AnimatePresence mode="wait">
+              {step === 0 && (
+                <motion.span
+                  key="typing"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="text-slate-400 flex items-center"
+                >
+                  <span className="typing-animation">{steps[0].text}</span>
+                  <span className="ml-1 animate-pulse">|</span>
+                </motion.span>
+              )}
+              {step >= 1 && (
+                <motion.span
+                  key="typed"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-white font-medium"
+                >
+                  {steps[0].text}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </div>
+        </motion.div>
+
+        {/* AI Analysis */}
+        <AnimatePresence>
+          {step >= 1 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 rounded-xl p-4 border border-indigo-500/30"
+            >
+              <div className="flex items-start gap-3">
+                <motion.div
+                  animate={step === 1 ? { rotate: 360 } : {}}
+                  transition={{ duration: 1, repeat: step === 1 ? Infinity : 0, ease: "linear" }}
+                  className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center flex-shrink-0"
+                >
+                  <Sparkles className="w-5 h-5 text-white" />
+                </motion.div>
+                <div className="flex-1">
+                  <p className="text-base text-indigo-300 mb-2 font-medium">Analyse Eisenhower</p>
+                  <AnimatePresence mode="wait">
+                    {step === 1 && (
+                      <motion.div
+                        key="analyzing"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="flex items-center gap-2"
+                      >
+                        <div className="flex gap-1">
+                          <motion.div
+                            animate={{ scale: [1, 1.2, 1] }}
+                            transition={{ duration: 0.6, repeat: Infinity, delay: 0 }}
+                            className="w-2 h-2 rounded-full bg-indigo-400"
+                          />
+                          <motion.div
+                            animate={{ scale: [1, 1.2, 1] }}
+                            transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }}
+                            className="w-2 h-2 rounded-full bg-indigo-400"
+                          />
+                          <motion.div
+                            animate={{ scale: [1, 1.2, 1] }}
+                            transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }}
+                            className="w-2 h-2 rounded-full bg-indigo-400"
+                          />
+                        </div>
+                        <span className="text-white">Analyse en cours...</span>
+                      </motion.div>
+                    )}
+                    {step >= 2 && (
+                      <motion.div
+                        key="result"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="space-y-3"
+                      >
+                        <div className="flex items-center justify-between bg-slate-900/50 rounded-lg p-3">
+                          <span className="text-white font-medium text-base">Quadrant</span>
+                          <span className="px-3 py-1.5 bg-red-500/20 text-red-400 rounded-full text-base font-semibold">
+                            🔥 Faire maintenant
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between bg-slate-900/50 rounded-lg p-3">
+                          <span className="text-white font-medium text-base">Priorité suggérée</span>
+                          <span className="text-white font-semibold text-base">Haute</span>
+                        </div>
+                        <div className="flex items-center justify-between bg-slate-900/50 rounded-lg p-3">
+                          <span className="text-white font-medium text-base">Étoiles</span>
+                          <span className="text-amber-400 font-semibold text-base">⭐⭐⭐</span>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* CTA in preview */}
+        {step === 3 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-4 text-center"
+          >
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg font-semibold text-base shadow-lg shadow-purple-500/25"
+            >
+              ✓ Appliquer les suggestions
+            </motion.button>
+          </motion.div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// Problem Section Component
+function ProblemSection() {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: "-50px" })
+
+  const problems = [
+    "Vous passez plus de temps à organiser qu'à faire",
+    "Les deadlines vous échappent constamment",
+    "Impossible de savoir par quoi commencer"
+  ]
+
+  return (
+    <section ref={ref} className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-slate-900 to-slate-800/50">
+      <div className="max-w-4xl mx-auto text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+        >
+          <span className="text-4xl mb-6 block">😩</span>
+          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-8">
+            &ldquo;Encore une liste de tâches qui déborde...&rdquo;
+          </h2>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : {}}
+          transition={{ delay: 0.3, duration: 0.6 }}
+          className="space-y-4 mb-12"
+        >
+          {problems.map((problem, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, x: -20 }}
+              animate={isInView ? { opacity: 1, x: 0 } : {}}
+              transition={{ delay: 0.4 + i * 0.15 }}
+              className="flex items-center justify-center gap-3"
+            >
+              <AlertCircle className="w-5 h-5 text-red-400" />
+              <span className="text-white font-semibold">{problem}</span>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.8, duration: 0.6 }}
+          className="relative"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-2xl blur-xl" />
+          <div className="relative bg-slate-800/50 rounded-2xl border border-indigo-500/30 p-8">
+            <span className="text-4xl mb-4 block">✨</span>
+            <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">
+              Et si une <span className="text-indigo-400">IA</span> faisait ce travail pour vous ?
+            </h3>
+            <p className="text-white font-semibold">
+              <BrandedName /> analyse, priorise et organise automatiquement.
+              <br />
+              <span className="text-white font-medium">Vous, vous passez à l&apos;action.</span>
+            </p>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  )
+}
+
 // FAQ Item component
 function FAQItem({
   question,
@@ -147,7 +427,7 @@ function FAQItem({
         className="w-full py-5 flex items-center justify-between text-left group"
       >
         <span className="text-lg font-medium text-white group-hover:text-indigo-400 transition-colors pr-4">
-          {question}
+          {formatWithBrand(question)}
         </span>
         <span className="flex-shrink-0 p-1 rounded-lg bg-slate-800 group-hover:bg-indigo-500/20 transition-colors">
           {isOpen ? (
@@ -163,9 +443,44 @@ function FAQItem({
           isOpen ? "max-h-96 opacity-100 pb-5" : "max-h-0 opacity-0"
         )}
       >
-        <p className="text-slate-400 leading-relaxed">{answer}</p>
+        <p className="text-slate-400 leading-relaxed">{formatWithBrand(answer)}</p>
       </div>
     </div>
+  )
+}
+
+// Mobile Sticky CTA Component
+function MobileStickyCTA() {
+  const [isVisible, setIsVisible] = useState(false)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Show after scrolling past hero (about 600px)
+      setIsVisible(window.scrollY > 600)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  return (
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 100, opacity: 0 }}
+          className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-slate-900/95 backdrop-blur-lg border-t border-slate-800 p-4 safe-area-pb"
+        >
+          <Link
+            href="/dashboard"
+            className="flex items-center justify-center gap-2 w-full py-3.5 bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/30"
+          >
+            Essayer gratuitement
+            <ArrowRight className="w-5 h-5" />
+          </Link>
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
 }
 
@@ -181,7 +496,7 @@ const faqData = [
   },
   {
     question: "Mes données sont-elles sécurisées ?",
-    answer: "Absolument. Avec le plan gratuit, vos données restent 100% locales sur votre appareil. Avec les plans payants, la synchronisation cloud utilise un chiffrement de bout en bout. Nous ne revendons jamais vos données et sommes conformes au RGPD."
+    answer: "Absolument. Avec le plan gratuit, vos données restent 100% locales sur votre appareil. Avec les plans payants, la synchronisation cloud est protégée par chiffrement SSL et vos données sont stockées de manière sécurisée. Nous ne revendons jamais vos données et sommes conformes au RGPD."
   },
   {
     question: "Puis-je utiliser MultiTasks hors ligne ?",
@@ -201,28 +516,9 @@ export default function LandingPage() {
   const [isVisible, setIsVisible] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [openFAQ, setOpenFAQ] = useState<number | null>(null)
-  const tasksCounter = useCounter(10000, 2500)
-  const usersCounter = useCounter(5000, 2500)
-  const hoursCounter = useCounter(50000, 2500)
 
   useEffect(() => {
     setIsVisible(true)
-    // Start counters when stats section is visible
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            tasksCounter.start()
-            usersCounter.start()
-            hoursCounter.start()
-          }
-        })
-      },
-      { threshold: 0.5 }
-    )
-    const statsSection = document.getElementById('stats')
-    if (statsSection) observer.observe(statsSection)
-    return () => observer.disconnect()
   }, [])
 
   // Close mobile menu when clicking a link
@@ -237,11 +533,8 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">✨</span>
-              <span className="text-xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
-                MultiTasks
-              </span>
+            <div className="flex items-center">
+              <BrandedName className="text-xl" />
             </div>
 
             {/* Desktop Navigation */}
@@ -344,176 +637,190 @@ export default function LandingPage() {
       <section className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
         {/* Background effects */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+          <motion.div
+            animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.3, 0.2] }}
+            transition={{ duration: 8, repeat: Infinity }}
+            className="absolute -top-40 -right-40 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl"
+          />
+          <motion.div
+            animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.3, 0.2] }}
+            transition={{ duration: 8, repeat: Infinity, delay: 2 }}
+            className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl"
+          />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-indigo-500/5 to-purple-500/5 rounded-full blur-3xl" />
         </div>
 
         <div className="relative max-w-7xl mx-auto">
-          <div className={cn(
-            "text-center max-w-4xl mx-auto transition-all duration-1000",
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-          )}>
+          <div className="text-center max-w-4xl mx-auto">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-sm font-medium mb-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-sm font-medium mb-8"
+            >
               <Sparkles className="w-4 h-4" />
               Propulsé par l&apos;Intelligence Artificielle
-            </div>
+            </motion.div>
 
-            {/* Main headline */}
-            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold text-white mb-6 leading-tight">
-              Gérez vos tâches
+            {/* Main headline - NEW IMPACTFUL COPY */}
+            <motion.h1
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="text-4xl sm:text-5xl lg:text-7xl font-extrabold text-white mb-6 leading-tight"
+            >
+              Arrêtez de subir vos tâches
               <br />
-              <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                comme jamais auparavant
-              </span>
-            </h1>
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent"
+              >
+                Dominez-les
+              </motion.span>
+            </motion.h1>
 
-            {/* Subtitle */}
-            <p className="text-lg sm:text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-              MultiTasks révolutionne votre productivité grâce à l&apos;IA.
-              Priorisation automatique, espaces de travail personnalisés,
-              et une interface qui s&apos;adapte à votre façon de travailler.
-            </p>
+            {/* Subtitle - PROBLEM-ORIENTED */}
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+              className="text-lg sm:text-xl text-slate-300 mb-10 max-w-2xl mx-auto leading-relaxed"
+            >
+              Fini les post-it par dizaines, les multiples notes oubliées sur son mobile, le stress des deadlines oubliées et des priorités floues.
+              <br />
+              <span className="text-white font-semibold">L&apos;IA analyse, priorise, et vous guide.</span>
+              <br />
+              <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent font-bold">Concentrez-vous enfin sur l&apos;essentiel !</span>
+            </motion.p>
 
             {/* CTA buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              className="flex justify-center mb-16"
+            >
               <Link
                 href="/dashboard"
                 className="group flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-bold text-lg rounded-2xl transition-all duration-300 shadow-2xl shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-105"
               >
-                Démarrer gratuitement
+                Essayer gratuitement
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
-            </div>
+            </motion.div>
 
-            {/* Hero image / App preview */}
-            <div id="app-preview" className="relative mx-auto max-w-5xl">
+            {/* Social proof - PWA & Offline */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8 }}
+              className="flex items-center justify-center gap-2 text-base text-white font-medium mb-12"
+            >
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+              </span>
+              <span>Fonctionne 100% hors-ligne une fois installé</span>
+            </motion.div>
+
+            {/* Hero image / Animated App Preview */}
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.7 }}
+              id="app-preview"
+              className="relative mx-auto max-w-3xl"
+            >
               <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent z-10 pointer-events-none" />
-              <div className="relative rounded-2xl overflow-hidden border border-slate-700/50 shadow-2xl shadow-indigo-500/20">
-                <div className="bg-slate-800 px-4 py-3 flex items-center gap-2 border-b border-slate-700/50">
-                  <div className="flex gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-red-500" />
-                    <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                    <div className="w-3 h-3 rounded-full bg-green-500" />
-                  </div>
-                  <div className="flex-1 text-center">
-                    <span className="text-xs text-slate-500">multitasks.app</span>
-                  </div>
-                </div>
-                <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-8 min-h-[400px] flex items-center justify-center">
-                  <div className="grid grid-cols-3 gap-4 w-full max-w-2xl">
-                    {/* Mock workspace cards */}
-                    {[
-                      { icon: '💼', name: 'Travail', tasks: 12, color: 'from-blue-500 to-cyan-500' },
-                      { icon: '🏠', name: 'Personnel', tasks: 8, color: 'from-purple-500 to-pink-500' },
-                      { icon: '📚', name: 'Études', tasks: 5, color: 'from-amber-500 to-orange-500' },
-                    ].map((ws, i) => (
-                      <div
-                        key={i}
-                        className={cn(
-                          "p-4 rounded-xl bg-slate-800/80 border border-slate-700/50 transform transition-all duration-500",
-                          i === 1 ? "scale-105 shadow-xl shadow-purple-500/20" : "opacity-80"
-                        )}
-                        style={{ animationDelay: `${i * 200}ms` }}
-                      >
-                        <div className={cn(
-                          "w-10 h-10 rounded-lg flex items-center justify-center text-xl mb-3 bg-gradient-to-br",
-                          ws.color
-                        )}>
-                          {ws.icon}
-                        </div>
-                        <p className="font-semibold text-white text-sm">{ws.name}</p>
-                        <p className="text-xs text-slate-400">{ws.tasks} tâches</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
+              <AnimatedAppPreview />
+            </motion.div>
           </div>
         </div>
 
         {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.5 }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce"
+        >
           <ChevronDown className="w-8 h-8 text-slate-500" />
-        </div>
+        </motion.div>
       </section>
 
-      {/* Stats Section */}
+      {/* Stats Section - Valeurs qualitatives */}
       <section id="stats" className="py-16 px-4 sm:px-6 lg:px-8 bg-slate-800/30">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={staggerContainer}
+            className="grid grid-cols-2 md:grid-cols-4 gap-8"
+          >
             {[
-              { value: tasksCounter.count, suffix: '+', label: 'Tâches accomplies', icon: CheckCircle2 },
-              { value: usersCounter.count, suffix: '+', label: 'Utilisateurs actifs', icon: Users },
-              { value: hoursCounter.count, suffix: 'h', label: 'Heures économisées', icon: Clock },
-              { value: 98, suffix: '%', label: 'Satisfaction client', icon: Star },
+              { value: '∞', suffix: '', label: 'Tâches possibles', icon: CheckCircle2 },
+              { value: '3', suffix: '', label: 'Fonctions IA', icon: Brain },
+              { value: '100', suffix: '%', label: 'Hors-ligne', icon: Smartphone },
+              { value: '0', suffix: '€', label: 'Pour commencer', icon: Star },
             ].map((stat, i) => (
-              <div key={i} className="text-center">
+              <motion.div key={i} variants={fadeInUp} className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <stat.icon className="w-6 h-6 text-indigo-400" />
                   <span className="text-3xl sm:text-4xl font-bold text-white">
-                    {stat.value.toLocaleString()}{stat.suffix}
+                    {stat.value}{stat.suffix}
                   </span>
                 </div>
-                <p className="text-slate-400">{stat.label}</p>
-              </div>
+                <p className="text-white/90 text-base font-medium">{stat.label}</p>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
+
+      {/* Problem Section - Emotional Hook */}
+      <ProblemSection />
 
       {/* Features Section */}
       <section id="features" className="py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
+          <AnimatedSection className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
               Tout ce dont vous avez besoin
             </h2>
             <p className="text-lg text-slate-400 max-w-2xl mx-auto">
               Des fonctionnalités pensées pour booster votre productivité au quotidien
             </p>
-          </div>
+          </AnimatedSection>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <FeatureCard
-              icon={Brain}
-              title="IA Intelligente"
-              description="L'IA analyse vos tâches et suggère automatiquement les priorités avec la matrice d'Eisenhower."
-              gradient="bg-gradient-to-br from-purple-500 to-pink-500"
-            />
-            <FeatureCard
-              icon={Layers}
-              title="Multi-espaces"
-              description="Organisez vos tâches par contexte : travail, perso, projets... Chaque casquette a son espace."
-              gradient="bg-gradient-to-br from-blue-500 to-cyan-500"
-            />
-            <FeatureCard
-              icon={Calendar}
-              title="Vue Calendrier"
-              description="Visualisez vos deadlines et planifiez efficacement avec notre vue calendrier intuitive."
-              gradient="bg-gradient-to-br from-amber-500 to-orange-500"
-            />
-            <FeatureCard
-              icon={Zap}
-              title="Rappels Intelligents"
-              description="Ne manquez plus jamais une deadline grâce aux notifications personnalisées."
-              gradient="bg-gradient-to-br from-green-500 to-emerald-500"
-            />
-            <FeatureCard
-              icon={Shield}
-              title="100% Sécurisé"
-              description="Vos données sont chiffrées et stockées localement. Votre vie privée est notre priorité."
-              gradient="bg-gradient-to-br from-red-500 to-rose-500"
-            />
-            <FeatureCard
-              icon={Smartphone}
-              title="PWA Native"
-              description="Installez l'app sur votre téléphone et accédez à vos tâches même hors ligne."
-              gradient="bg-gradient-to-br from-indigo-500 to-violet-500"
-            />
-          </div>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-50px" }}
+            variants={staggerContainer}
+            className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {[
+              { icon: Brain, title: "IA Intelligente", description: "L'IA analyse vos tâches et suggère automatiquement les priorités avec la matrice d'Eisenhower.", gradient: "bg-gradient-to-br from-purple-500 to-pink-500" },
+              { icon: Layers, title: "Multi-espaces", description: "Organisez vos tâches par contexte : travail, perso, projets... Chaque casquette a son espace.", gradient: "bg-gradient-to-br from-blue-500 to-cyan-500" },
+              { icon: Calendar, title: "Vue Calendrier", description: "Visualisez vos deadlines et planifiez efficacement avec notre vue calendrier intuitive.", gradient: "bg-gradient-to-br from-amber-500 to-orange-500" },
+              { icon: Zap, title: "Notifications", description: "Ne manquez plus jamais une deadline grâce aux rappels personnalisés.", gradient: "bg-gradient-to-br from-green-500 to-emerald-500" },
+              { icon: Shield, title: "100% Sécurisé", description: "Vos données sont chiffrées et stockées localement. Votre vie privée est notre priorité.", gradient: "bg-gradient-to-br from-red-500 to-rose-500" },
+              { icon: Smartphone, title: "PWA Native", description: "Installez l'app sur votre téléphone et accédez à vos tâches même hors ligne.", gradient: "bg-gradient-to-br from-indigo-500 to-violet-500" },
+            ].map((feature, i) => (
+              <motion.div key={i} variants={fadeInUp}>
+                <FeatureCard
+                  icon={feature.icon}
+                  title={feature.title}
+                  description={feature.description}
+                  gradient={feature.gradient}
+                />
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
       </section>
 
@@ -539,8 +846,8 @@ export default function LandingPage() {
                 {[
                   'Analyse automatique du contexte',
                   'Suggestions de priorité intelligentes',
+                  'Classification par matrice Eisenhower',
                   'Estimation de durée des tâches',
-                  'Assistant IA conversationnel',
                 ].map((item, i) => (
                   <li key={i} className="flex items-center gap-3">
                     <div className="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center">
@@ -559,7 +866,7 @@ export default function LandingPage() {
                     <Sparkles className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm text-slate-400 mb-1">Analyse IA</p>
+                    <p className="text-sm text-slate-400 mb-1">Analyse Eisenhower</p>
                     <p className="text-white font-medium">&ldquo;Préparer la présentation client&rdquo;</p>
                   </div>
                 </div>
@@ -567,18 +874,21 @@ export default function LandingPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-slate-400 text-sm">Quadrant</span>
                     <span className="px-3 py-1 bg-red-500/20 text-red-400 rounded-full text-sm font-medium">
-                      🔥 Urgent & Important
+                      🔥 Faire maintenant
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-slate-400 text-sm">Priorité suggérée</span>
-                    <span className="text-amber-400 font-medium">★★★ Haute</span>
+                    <span className="text-white font-medium">Haute</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-400 text-sm">Durée estimée</span>
-                    <span className="text-white font-medium">~2h30</span>
+                    <span className="text-slate-400 text-sm">Étoiles</span>
+                    <span className="text-amber-400 font-medium">⭐⭐⭐</span>
                   </div>
                 </div>
+                <button className="w-full mt-4 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-semibold text-sm shadow-lg shadow-purple-500/25">
+                  ✓ Appliquer les suggestions
+                </button>
               </div>
             </div>
           </div>
@@ -624,7 +934,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-              Ils adorent MultiTasks
+              Ils adorent <BrandedName />
             </h2>
             <p className="text-lg text-slate-400 max-w-2xl mx-auto">
               Découvrez ce que nos utilisateurs disent de leur expérience
@@ -686,7 +996,7 @@ export default function LandingPage() {
             <PricingCard
               name="Pro"
               description="Pour les professionnels exigeants"
-              price="9€"
+              price="9,90€"
               period="/mois"
               plan="pro"
               featured
@@ -697,19 +1007,19 @@ export default function LandingPage() {
                 'IA Eisenhower',
                 'Estimation duree IA',
                 'Sync cloud multi-appareils',
-                'Rappels intelligents',
-                'Export PDF/CSV',
+                'Rappels personnalises',
                 'Support prioritaire',
               ]}
             />
 
+{/* Plan Team masqué - fonctionnalités non encore implémentées
             <PricingCard
               name="Equipe"
               description="Pour collaborer efficacement"
-              price="19€"
+              price="19,90€"
               period="/utilisateur/mois"
               plan="team"
-              ctaText="Commencer"
+              ctaText="Bientot disponible"
               features={[
                 'Tout le plan Pro',
                 'Espaces partages',
@@ -721,6 +1031,7 @@ export default function LandingPage() {
                 'Support dedie',
               ]}
             />
+            */}
           </div>
 
           {/* FAQ teaser */}
@@ -751,7 +1062,7 @@ export default function LandingPage() {
               Questions fréquentes
             </h2>
             <p className="text-lg text-slate-400">
-              Tout ce que vous devez savoir sur MultiTasks
+              Tout ce que vous devez savoir sur <BrandedName withIcon={false} />
             </p>
           </div>
 
@@ -810,14 +1121,11 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-4 sm:px-6 lg:px-8 border-t border-slate-800">
+      <footer className="py-12 px-4 sm:px-6 lg:px-8 border-t border-slate-800 pb-24 md:pb-12">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">✨</span>
-              <span className="text-xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
-                MultiTasks
-              </span>
+            <div className="flex items-center">
+              <BrandedName className="text-xl" />
             </div>
             <div className="flex items-center gap-6 text-sm text-slate-400">
               <a href="#" className="hover:text-white transition-colors">Confidentialité</a>
@@ -825,11 +1133,14 @@ export default function LandingPage() {
               <a href="#" className="hover:text-white transition-colors">Contact</a>
             </div>
             <p className="text-sm text-slate-500">
-              © 2024 MultiTasks. Fait avec ❤️ en France
+              © 2024 <BrandedName withIcon={false} />. Fait avec ❤️ en France
             </p>
           </div>
         </div>
       </footer>
+
+      {/* Mobile Sticky CTA - appears after scrolling */}
+      <MobileStickyCTA />
     </div>
   )
 }

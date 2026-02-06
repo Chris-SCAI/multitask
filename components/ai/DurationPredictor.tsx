@@ -82,7 +82,7 @@ export function DurationPredictor({ task, subtasks = [], onApply }: DurationPred
         <button
           onClick={handlePredict}
           disabled={isLoading}
-          className="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm text-slate-100 transition-colors disabled:opacity-50"
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 disabled:from-slate-600 disabled:to-slate-600 text-white rounded-xl font-medium transition-all shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40"
         >
           {isLoading ? (
             <>
@@ -91,8 +91,8 @@ export function DurationPredictor({ task, subtasks = [], onApply }: DurationPred
             </>
           ) : (
             <>
-              <Clock size={16} className="text-cyan-300" />
-              <span>Estimer la durée</span>
+              <Clock size={16} />
+              <span>Estimation de durée (IA)</span>
             </>
           )}
         </button>

@@ -51,10 +51,11 @@ export function Sidebar({
         isCollapsed && 'p-4'
       )}>
         <h1 className={cn(
-          'font-extrabold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent transition-all',
-          isCollapsed ? 'text-xl text-center' : 'text-2xl'
+          'font-extrabold flex items-center transition-all',
+          isCollapsed ? 'text-xl justify-center' : 'text-2xl gap-1'
         )}>
-          {isCollapsed ? '✨' : '✨ MultiTasks'}
+          <span className="text-indigo-400">✦</span>
+          {!isCollapsed && <span className="bg-gradient-to-r from-indigo-400 to-amber-300 bg-clip-text text-transparent">MultiTasks</span>}
         </h1>
       </div>
 

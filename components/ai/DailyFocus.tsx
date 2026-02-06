@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Target, Clock, Zap, Battery, BatteryLow, Loader2, RefreshCw, Lightbulb, Lock } from 'lucide-react'
+import { Target, Clock, Zap, Battery, BatteryLow, Loader2, RefreshCw, Lightbulb, Lock, Sparkles } from 'lucide-react'
 import { Task, Workspace } from '../../lib/types'
 import { getDailyFocus, DailyFocusResult, FocusTask } from '../../lib/ai-features'
 import { isLLMConfigured } from '../../lib/llm-providers'
@@ -73,12 +73,12 @@ export function DailyFocus({ tasks, workspaces, onClickTask }: DailyFocusProps) 
               disabled={isLoading}
               className={`flex items-center gap-2 px-4 py-2 ${
                 aiEnabled
-                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 shadow-emerald-500/25'
+                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-purple-500/25 hover:shadow-purple-500/40'
                   : 'bg-slate-700 hover:bg-slate-600'
               } text-white rounded-xl font-medium transition-all shadow-lg`}
             >
-              {aiEnabled ? <Target size={18} /> : <Lock size={18} />}
-              <span>Générer</span>
+              {aiEnabled ? <Sparkles size={18} /> : <Lock size={18} />}
+              <span>Focus (IA)</span>
             </button>
           </div>
           {error && (
