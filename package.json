@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@next/third-parties": "^16.1.6",
+    "@sentry/nextjs": "^10.38.0",
     "@supabase/supabase-js": "^2.94.0",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
