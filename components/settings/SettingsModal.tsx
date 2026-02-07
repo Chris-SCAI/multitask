@@ -36,6 +36,7 @@ import {
   DEFAULT_MODEL,
   getModelInfo
 } from '../../lib/llm-providers'
+import NotificationToggle from '../pwa/NotificationToggle'
 
 interface SettingsModalProps {
   isOpen: boolean
@@ -329,7 +330,7 @@ export function SettingsModal({ isOpen, onClose, workspaces, onWorkspacesChange,
               activeTab === 'workspaces' ? 'bg-indigo-500/20 text-indigo-300' : 'text-white hover:text-white'
             }`}
           >
-            <Briefcase size={16} /> Workspaces
+            <Briefcase size={16} /> Activités
           </button>
           <button
             onClick={() => { setActiveTab('types'); cancelEdit() }}
@@ -383,6 +384,14 @@ export function SettingsModal({ isOpen, onClose, workspaces, onWorkspacesChange,
                 <p className="text-xs text-slate-100 mt-2">
                   Ton prénom sera affiché dans le cockpit pour te saluer
                 </p>
+              </div>
+
+              {/* Notifications */}
+              <div className="pt-4 border-t border-slate-700">
+                <label className="block text-sm font-medium text-white mb-3">
+                  Notifications
+                </label>
+                <NotificationToggle />
               </div>
             </div>
           </div>
@@ -441,7 +450,7 @@ export function SettingsModal({ isOpen, onClose, workspaces, onWorkspacesChange,
                     <Check size={14} /> Sync cloud
                   </div>
                   <div className={`flex items-center gap-2 text-sm ${isPro ? 'text-green-400' : 'text-slate-500'}`}>
-                    <Check size={14} /> Espaces illimites
+                    <Check size={14} /> Activités illimitées
                   </div>
                   <div className={`flex items-center gap-2 text-sm ${isPro ? 'text-green-400' : 'text-slate-500'}`}>
                     <Check size={14} /> Support prioritaire
@@ -597,11 +606,11 @@ export function SettingsModal({ isOpen, onClose, workspaces, onWorkspacesChange,
           </div>
         )}
 
-        {/* Workspaces Tab */}
+        {/* Activités Tab */}
         {activeTab === 'workspaces' && (
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-slate-100">Espaces de travail</h3>
+              <h3 className="text-lg font-semibold text-slate-100">Activités</h3>
               {!isAdding && !editingId && (
                 <Button size="sm" onClick={() => setIsAdding(true)}>
                   <Plus size={16} className="mr-1" /> Ajouter

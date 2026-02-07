@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Check, Loader2 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useSubscription } from '@/hooks/useSubscription'
+import type { BillingInterval } from '@/lib/stripe'
 
 interface PricingCardProps {
   name: string
@@ -12,9 +13,15 @@ interface PricingCardProps {
   price: string
   period: string
   features: string[]
-  plan: 'free' | 'pro' | 'team'
+  plan: 'free' | 'pro' | 'student' | 'team'
   featured?: boolean
   ctaText: string
+  // New props for billing toggle
+  billingInterval?: BillingInterval
+  yearlyPrice?: string
+  yearlyPeriod?: string
+  monthlyEquivalent?: string
+  savings?: string
 }
 
 export function PricingCard({
@@ -26,12 +33,20 @@ export function PricingCard({
   plan,
   featured = false,
   ctaText,
+  billingInterval = 'monthly',
+  yearlyPrice,
+  yearlyPeriod,
+  monthlyEquivalent,
+  savings,
 }: PricingCardProps) {
   const { user } = useAuth()
   const { startCheckout, plan: currentPlan, isActive } = useSubscription()
   const [loading, setLoading] = useState(false)
 
   const isCurrentPlan = currentPlan === plan && isActive
+  const isYearly = billingInterval === 'yearly'
+  const displayPrice = isYearly && yearlyPrice ? yearlyPrice : price
+  const displayPeriod = isYearly && yearlyPeriod ? yearlyPeriod : period
 
   const handleClick = async () => {
     // Free plan or already on this plan - go to dashboard
@@ -43,15 +58,16 @@ export function PricingCard({
     // Not logged in - save intent and go to dashboard to login
     if (!user) {
       // Store the plan intent for after login
-      sessionStorage.setItem('checkout_plan', plan)
-      window.location.href = '/dashboard?checkout=' + plan
+      const checkoutPlan = isYearly ? `${plan}_yearly` : plan
+      sessionStorage.setItem('checkout_plan', checkoutPlan)
+      window.location.href = '/dashboard?checkout=' + checkoutPlan
       return
     }
 
-    // Start checkout
+    // Start checkout with billing interval
     setLoading(true)
     try {
-      await startCheckout(plan)
+      await startCheckout(plan, billingInterval)
     } catch (error) {
       console.error('Checkout error:', error)
       alert('Erreur lors du checkout. Veuillez réessayer.')
@@ -86,8 +102,18 @@ export function PricingCard({
       </div>
 
       <div className="mb-6">
-        <span className="text-4xl font-extrabold text-white">{price}</span>
-        <span className="text-slate-400">{period}</span>
+        <span className="text-4xl font-extrabold text-white">{displayPrice}</span>
+        <span className="text-slate-400">{displayPeriod}</span>
+        {isYearly && monthlyEquivalent && (
+          <div className="mt-2 text-sm">
+            <span className="text-slate-400">soit {monthlyEquivalent}/mois</span>
+            {savings && (
+              <span className="ml-2 px-2 py-0.5 bg-green-500/20 text-green-400 rounded-full text-xs font-semibold">
+                -{savings}
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       <ul className="space-y-4 mb-8">

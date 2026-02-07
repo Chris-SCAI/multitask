@@ -161,13 +161,49 @@ export function exportToPDF(
   const pageWidth = doc.internal.pageSize.getWidth()
 
   // Header
-  doc.setFillColor(99, 102, 241) // Indigo
+  doc.setFillColor(124, 58, 237) // Violet
   doc.rect(0, 0, pageWidth, 35, 'F')
+
+  // Draw sparkle ✨ (jsPDF doesn't support emojis)
+  const sparkleX = 14
+  const sparkleY = 14
+  const sparkleSize = 6
+  doc.setFillColor(251, 191, 36) // Amber-400
+
+  // Main 4-point star
+  doc.triangle(
+    sparkleX, sparkleY - sparkleSize,
+    sparkleX - sparkleSize * 0.3, sparkleY,
+    sparkleX + sparkleSize * 0.3, sparkleY,
+    'F'
+  )
+  doc.triangle(
+    sparkleX, sparkleY + sparkleSize,
+    sparkleX - sparkleSize * 0.3, sparkleY,
+    sparkleX + sparkleSize * 0.3, sparkleY,
+    'F'
+  )
+  doc.triangle(
+    sparkleX - sparkleSize, sparkleY,
+    sparkleX, sparkleY - sparkleSize * 0.3,
+    sparkleX, sparkleY + sparkleSize * 0.3,
+    'F'
+  )
+  doc.triangle(
+    sparkleX + sparkleSize, sparkleY,
+    sparkleX, sparkleY - sparkleSize * 0.3,
+    sparkleX, sparkleY + sparkleSize * 0.3,
+    'F'
+  )
+
+  // Small sparkle dots
+  doc.circle(sparkleX - sparkleSize * 0.6, sparkleY - sparkleSize * 0.5, 0.8, 'F')
+  doc.circle(sparkleX + sparkleSize * 0.5, sparkleY + sparkleSize * 0.6, 0.8, 'F')
 
   doc.setTextColor(255, 255, 255)
   doc.setFontSize(22)
   doc.setFont('helvetica', 'bold')
-  doc.text('MultiTasks', 14, 18)
+  doc.text('MultiTasks', 24, 18) // Décalé pour laisser place au sparkle
 
   doc.setFontSize(11)
   doc.setFont('helvetica', 'normal')

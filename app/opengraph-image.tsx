@@ -38,14 +38,15 @@ export default async function Image() {
               width: 120,
               height: 120,
               borderRadius: 24,
-              background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+              background: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #c084fc 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: 60,
+              color: 'white',
             }}
           >
-            ✓
+            ✨M
           </div>
         </div>
 
@@ -55,13 +56,12 @@ export default async function Image() {
             display: 'flex',
             fontSize: 72,
             fontWeight: 800,
-            background: 'linear-gradient(90deg, #fff 0%, #e2e8f0 100%)',
-            backgroundClip: 'text',
-            color: 'transparent',
             marginBottom: 20,
           }}
         >
-          MultiTasks
+          <span style={{ marginRight: 8 }}>✨</span>
+          <span style={{ color: '#a78bfa' }}>Multi</span>
+          <span style={{ color: '#fcd34d' }}>Tasks</span>
         </div>
 
         {/* Subtitle */}

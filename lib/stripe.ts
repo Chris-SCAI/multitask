@@ -25,12 +25,47 @@ export const stripe = {
 
 // Price IDs from environment
 export const STRIPE_PRICES = {
-  pro: process.env.STRIPE_PRICE_PRO!,
+  pro_monthly: process.env.STRIPE_PRICE_PRO_MONTHLY!,
+  pro_yearly: process.env.STRIPE_PRICE_PRO_YEARLY!,
+  student_yearly: process.env.STRIPE_PRICE_STUDENT_YEARLY!,
+  // Legacy support
+  pro: process.env.STRIPE_PRICE_PRO_MONTHLY || process.env.STRIPE_PRICE_PRO!,
   team: process.env.STRIPE_PRICE_TEAM!,
 }
 
+// Billing intervals
+export type BillingInterval = 'monthly' | 'yearly'
+
+// Price display info
+export const PRICE_INFO = {
+  pro: {
+    monthly: {
+      amount: 9.90,
+      display: '9,90€',
+      period: '/mois',
+    },
+    yearly: {
+      amount: 79,
+      display: '79€',
+      period: '/an',
+      monthlyEquivalent: '6,58€',
+      savings: '34%',
+      badge: '2 mois offerts',
+    },
+  },
+  student: {
+    yearly: {
+      amount: 49,
+      display: '49€',
+      period: '/an',
+      monthlyEquivalent: '4,08€',
+      badge: 'Tarif étudiant',
+    },
+  },
+}
+
 // Plan types
-export type PlanType = 'free' | 'pro' | 'team'
+export type PlanType = 'free' | 'pro' | 'student' | 'team'
 
 export interface SubscriptionData {
   id: string
@@ -46,7 +81,10 @@ export interface SubscriptionData {
 
 // Helper to get plan from price ID
 export function getPlanFromPriceId(priceId: string): PlanType {
+  if (priceId === STRIPE_PRICES.pro_monthly) return 'pro'
+  if (priceId === STRIPE_PRICES.pro_yearly) return 'pro'
   if (priceId === STRIPE_PRICES.pro) return 'pro'
+  if (priceId === STRIPE_PRICES.student_yearly) return 'student'
   if (priceId === STRIPE_PRICES.team) return 'team'
   return 'free'
 }
@@ -64,9 +102,9 @@ export function formatSubscriptionStatus(status: string): string {
   return statusMap[status] || status
 }
 
-// Check if user can access pro features
+// Check if user can access pro features (student has same features as pro)
 export function canAccessProFeatures(plan: PlanType, status: string): boolean {
-  return (plan === 'pro' || plan === 'team') &&
+  return (plan === 'pro' || plan === 'student' || plan === 'team') &&
          (status === 'active' || status === 'trialing')
 }
 
@@ -78,21 +116,35 @@ export function canAccessTeamFeatures(plan: PlanType, status: string): boolean {
 // Plan limits
 export const PLAN_LIMITS = {
   free: {
-    maxWorkspaces: 3,
-    maxTasks: 50,
-    aiEnabled: false,
+    maxWorkspaces: 3,        // "Activités" dans l'UI
+    maxTasks: 60,
+    aiEnabled: true,          // IA activée mais limitée
+    aiRequestsPerWeek: 10,    // 10 priorisations IA/semaine
+    maxRemindersPerDay: 1,    // 1 rappel/jour
     cloudSync: false,
   },
   pro: {
     maxWorkspaces: Infinity,
     maxTasks: Infinity,
     aiEnabled: true,
+    aiRequestsPerWeek: Infinity,
+    maxRemindersPerDay: Infinity,
+    cloudSync: true,
+  },
+  student: {
+    maxWorkspaces: Infinity,
+    maxTasks: Infinity,
+    aiEnabled: true,
+    aiRequestsPerWeek: Infinity,
+    maxRemindersPerDay: Infinity,
     cloudSync: true,
   },
   team: {
     maxWorkspaces: Infinity,
     maxTasks: Infinity,
     aiEnabled: true,
+    aiRequestsPerWeek: Infinity,
+    maxRemindersPerDay: Infinity,
     cloudSync: true,
     teamFeatures: true,
   },

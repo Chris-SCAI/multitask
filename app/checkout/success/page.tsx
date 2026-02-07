@@ -60,7 +60,7 @@ export default function CheckoutSuccessPage() {
               </li>
               <li className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-emerald-500" />
-                Espaces de travail illimites
+                Activités illimitées
               </li>
             </ul>
           </div>

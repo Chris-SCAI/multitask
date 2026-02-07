@@ -29,11 +29,10 @@ import { PricingCard } from '@/components/pricing/PricingCard'
 // Branded MultiTasks component - always displays with icon + gradient
 function BrandedName({ withIcon = true, className = "" }: { withIcon?: boolean, className?: string }) {
   return (
-    <span className={cn("inline-flex items-center gap-1", className)}>
-      {withIcon && <span className="text-indigo-400">✦</span>}
-      <span className="bg-gradient-to-r from-indigo-400 to-amber-300 bg-clip-text text-transparent font-bold">
-        MultiTasks
-      </span>
+    <span className={cn("inline-flex items-center gap-0.5 font-bold", className)}>
+      {withIcon && <span>✨</span>}
+      <span className="text-violet-400">Multi</span>
+      <span className="bg-gradient-to-r from-amber-300 to-yellow-200 bg-clip-text text-transparent">Tasks</span>
     </span>
   )
 }
@@ -339,70 +338,273 @@ function AnimatedAppPreview() {
   )
 }
 
-// Problem Section Component
-function ProblemSection() {
+// Pricing Section with 3 plans + double guarantee
+function PricingSection() {
+  const [billingInterval, setBillingInterval] = useState<'monthly' | 'yearly'>('yearly')
+
+  return (
+    <section id="pricing" className="py-24 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+            Choisis ton plan
+          </h2>
+          <p className="text-lg text-slate-400 max-w-2xl mx-auto mb-8">
+            Commence gratuitement, passe Pro quand tu veux
+          </p>
+
+          {/* Billing toggle */}
+          <div className="inline-flex items-center gap-3 p-1 bg-slate-800/80 rounded-full border border-slate-700/50">
+            <button
+              onClick={() => setBillingInterval('monthly')}
+              className={cn(
+                'px-5 py-2 rounded-full text-sm font-medium transition-all duration-300',
+                billingInterval === 'monthly'
+                  ? 'bg-indigo-500 text-white shadow-lg'
+                  : 'text-slate-400 hover:text-white'
+              )}
+            >
+              Mensuel
+            </button>
+            <button
+              onClick={() => setBillingInterval('yearly')}
+              className={cn(
+                'px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-2',
+                billingInterval === 'yearly'
+                  ? 'bg-indigo-500 text-white shadow-lg'
+                  : 'text-slate-400 hover:text-white'
+              )}
+            >
+              Annuel
+              <span className="px-2 py-0.5 bg-green-500/20 text-green-400 rounded-full text-xs font-bold">
+                2 mois offerts
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* 3 Plans Grid */}
+        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          {/* Free */}
+          <PricingCard
+            name="Gratuit"
+            description="Pour découvrir"
+            price="0€"
+            period="/mois"
+            plan="free"
+            ctaText="Commencer gratuit"
+            features={[
+              '3 activités max',
+              '60 tâches max',
+              '10 priorisations IA/sem',
+              '1 rappel/jour',
+              'Stockage local',
+            ]}
+          />
+
+          {/* Pro - Featured */}
+          <PricingCard
+            name="Pro"
+            description="Pour les multi-casquettes"
+            price="9,90€"
+            period="/mois"
+            yearlyPrice="79€"
+            yearlyPeriod="/an"
+            monthlyEquivalent="6,58€"
+            savings="34%"
+            plan="pro"
+            featured
+            billingInterval={billingInterval}
+            ctaText="Essai gratuit 14 jours"
+            features={[
+              'Activités illimitées',
+              'Tâches illimitées',
+              'IA illimitée',
+              'Rappels illimités',
+              'Sync cloud',
+              'Export PDF/CSV',
+            ]}
+          />
+
+          {/* Student */}
+          <div className="relative">
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+              <span className="px-4 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-bold rounded-full shadow-lg">
+                🎓 Étudiant
+              </span>
+            </div>
+            <PricingCard
+              name="Student"
+              description="Tarif étudiant vérifié"
+              price="49€"
+              period="/an"
+              plan="student"
+              billingInterval="yearly"
+              ctaText="Obtenir le tarif étudiant"
+              features={[
+                'Activités illimitées',
+                'Tâches illimitées',
+                'IA illimitée',
+                'Rappels illimités',
+                'Sync cloud',
+                'Export PDF/CSV',
+              ]}
+            />
+          </div>
+        </div>
+
+        {/* Double Garantie */}
+        <div className="mt-16 max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Garantie 1: 30 jours */}
+            <div className="p-6 rounded-2xl bg-gradient-to-br from-green-900/20 to-emerald-900/20 border border-green-500/30">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center">
+                  <Shield className="w-6 h-6 text-green-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white mb-2">
+                    Garantie 30 jours
+                  </h3>
+                  <p className="text-slate-300 text-sm leading-relaxed">
+                    Si <BrandedName withIcon={false} /> ne te simplifie pas la vie en 30 jours,
+                    tu demandes un remboursement : on te rembourse, point.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Garantie 2: 1 heure gagnée */}
+            <div className="p-6 rounded-2xl bg-gradient-to-br from-purple-900/20 to-indigo-900/20 border border-purple-500/30">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center">
+                  <Zap className="w-6 h-6 text-purple-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white mb-2">
+                    Garantie &ldquo;1 heure gagnée&rdquo;
+                  </h3>
+                  <p className="text-slate-300 text-sm leading-relaxed">
+                    Si au bout de 4 semaines tu ne gagnes pas au moins 1h/semaine,
+                    contacte-nous : on te rembourse intégralement.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p className="text-center text-slate-500 text-sm mt-4">
+            Annulation en 2 clics depuis les paramètres • Pas d&apos;engagement
+          </p>
+        </div>
+
+        {/* FAQ teaser */}
+        <div className="mt-12 text-center">
+          <p className="text-slate-400">
+            Des questions ?{' '}
+            <a href="#faq" className="text-indigo-400 hover:text-indigo-300 underline underline-offset-4">
+              Consulte notre FAQ
+            </a>
+            {' '}ou{' '}
+            <a href="mailto:support@multitasks.fr" className="text-indigo-400 hover:text-indigo-300 underline underline-offset-4">
+              contacte-nous
+            </a>
+          </p>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// Before/After Section Component
+function BeforeAfterSection() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: "-50px" })
 
-  const problems = [
-    "Vous passez plus de temps à organiser qu'à faire",
-    "Les deadlines vous échappent constamment",
-    "Impossible de savoir par quoi commencer"
-  ]
-
   return (
     <section ref={ref} className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-slate-900 to-slate-800/50">
-      <div className="max-w-4xl mx-auto text-center">
+      <div className="max-w-5xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
+          className="text-center mb-12"
         >
-          <span className="text-4xl mb-6 block">😩</span>
-          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-8">
-            &ldquo;Encore une liste de tâches qui déborde...&rdquo;
+          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
+            La différence <BrandedName withIcon={false} />
           </h2>
+          <p className="text-slate-400">De la paralysie à l&apos;action en quelques secondes</p>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
-          transition={{ delay: 0.3, duration: 0.6 }}
-          className="space-y-4 mb-12"
-        >
-          {problems.map((problem, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, x: -20 }}
-              animate={isInView ? { opacity: 1, x: 0 } : {}}
-              transition={{ delay: 0.4 + i * 0.15 }}
-              className="flex items-center justify-center gap-3"
-            >
-              <AlertCircle className="w-5 h-5 text-red-400" />
-              <span className="text-white font-semibold">{problem}</span>
-            </motion.div>
-          ))}
-        </motion.div>
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* AVANT */}
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            animate={isInView ? { opacity: 1, x: 0 } : {}}
+            transition={{ delay: 0.2, duration: 0.6 }}
+            className="relative"
+          >
+            <div className="absolute -inset-1 bg-gradient-to-r from-red-500/20 to-orange-500/20 rounded-2xl blur-lg" />
+            <div className="relative bg-slate-800/80 rounded-2xl border border-red-500/30 p-8 h-full">
+              <div className="flex items-center gap-3 mb-6">
+                <span className="text-3xl">😩</span>
+                <span className="text-xl font-bold text-red-400">AVANT</span>
+              </div>
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />
+                  <p className="text-slate-300">200 tâches dans la tête, impossible de choisir</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />
+                  <p className="text-slate-300">Deadlines oubliées, stress permanent</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />
+                  <p className="text-slate-300">Post-it, notes, rappels éparpillés partout</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />
+                  <p className="text-slate-300">&ldquo;Par quoi je commence ?&rdquo;</p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ delay: 0.8, duration: 0.6 }}
-          className="relative"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-2xl blur-xl" />
-          <div className="relative bg-slate-800/50 rounded-2xl border border-indigo-500/30 p-8">
-            <span className="text-4xl mb-4 block">✨</span>
-            <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">
-              Et si une <span className="text-indigo-400">IA</span> faisait ce travail pour vous ?
-            </h3>
-            <p className="text-white font-semibold">
-              <BrandedName /> analyse, priorise et organise automatiquement.
-              <br />
-              <span className="text-white font-medium">Vous, vous passez à l&apos;action.</span>
-            </p>
-          </div>
-        </motion.div>
+          {/* APRÈS */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            animate={isInView ? { opacity: 1, x: 0 } : {}}
+            transition={{ delay: 0.4, duration: 0.6 }}
+            className="relative"
+          >
+            <div className="absolute -inset-1 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-2xl blur-lg" />
+            <div className="relative bg-slate-800/80 rounded-2xl border border-green-500/30 p-8 h-full">
+              <div className="flex items-center gap-3 mb-6">
+                <span className="text-3xl">✨</span>
+                <span className="text-xl font-bold text-green-400">APRÈS</span>
+              </div>
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
+                  <p className="text-slate-300"><span className="text-white font-semibold">1 prochaine action</span>, claire, priorisée</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
+                  <p className="text-slate-300">Rappels intelligents, <span className="text-white font-semibold">0 oubli</span></p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
+                  <p className="text-slate-300">Tout centralisé par activité (cours / taf / perso)</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
+                  <p className="text-slate-300">L&apos;IA décide, <span className="text-white font-semibold">tu exécutes</span></p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </div>
     </section>
   )
@@ -488,7 +690,7 @@ function MobileStickyCTA() {
 const faqData = [
   {
     question: "MultiTasks est-il vraiment gratuit ?",
-    answer: "Oui ! Le plan gratuit vous donne accès à 3 espaces de travail et 50 tâches actives, sans limite de temps. C'est parfait pour un usage personnel. Les fonctionnalités avancées comme l'IA et la synchronisation cloud sont disponibles dans les plans payants."
+    answer: "Oui ! Le plan gratuit te donne accès à 3 activités et 60 tâches, sans limite de temps. C'est parfait pour démarrer. Les fonctionnalités avancées comme l'IA illimitée et la synchronisation cloud sont disponibles dans les plans payants."
   },
   {
     question: "Comment fonctionne l'IA de priorisation ?",
@@ -663,14 +865,14 @@ export default function LandingPage() {
               Propulsé par l&apos;Intelligence Artificielle
             </motion.div>
 
-            {/* Main headline - NEW IMPACTFUL COPY */}
+            {/* Main headline - ONE-LINER */}
             <motion.h1
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
               className="text-4xl sm:text-5xl lg:text-7xl font-extrabold text-white mb-6 leading-tight"
             >
-              Arrêtez de subir vos tâches
+              Une seule app pour
               <br />
               <motion.span
                 initial={{ opacity: 0 }}
@@ -678,53 +880,69 @@ export default function LandingPage() {
                 transition={{ duration: 0.6, delay: 0.4 }}
                 className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent"
               >
-                Dominez-les
+                tes 5 vies.
               </motion.span>
             </motion.h1>
 
-            {/* Subtitle - PROBLEM-ORIENTED */}
+            {/* Subtitle */}
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.5 }}
-              className="text-lg sm:text-xl text-slate-300 mb-10 max-w-2xl mx-auto leading-relaxed"
+              className="text-lg sm:text-xl text-slate-300 mb-4 max-w-2xl mx-auto leading-relaxed"
             >
-              Fini les post-it par dizaines, les multiples notes oubliées sur son mobile, le stress des deadlines oubliées et des priorités floues.
+              Classe tes tâches par activités (cours / taf / perso / projet).
               <br />
-              <span className="text-white font-semibold">L&apos;IA analyse, priorise, et vous guide.</span>
-              <br />
-              <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent font-bold">Concentrez-vous enfin sur l&apos;essentiel !</span>
+              Ajoute des deadlines.{' '}
+              <span className="text-white font-semibold">L&apos;IA te dit quoi faire maintenant.</span>
             </motion.p>
+
+            {/* Value proposition */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.55 }}
+              className="flex flex-wrap justify-center gap-4 mb-10 text-sm"
+            >
+              <span className="flex items-center gap-2 text-green-400">
+                <Check className="w-4 h-4" />
+                30-60 min gagnées / semaine
+              </span>
+              <span className="flex items-center gap-2 text-green-400">
+                <Check className="w-4 h-4" />
+                0 deadline oubliée
+              </span>
+              <span className="flex items-center gap-2 text-green-400">
+                <Check className="w-4 h-4" />
+                Moins de stress
+              </span>
+            </motion.div>
 
             {/* CTA buttons */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.6 }}
-              className="flex justify-center mb-16"
+              className="flex justify-center mb-6"
             >
               <Link
                 href="/dashboard"
                 className="group flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-bold text-lg rounded-2xl transition-all duration-300 shadow-2xl shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-105"
               >
-                Essayer gratuitement
+                Commencer gratuitement
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
             </motion.div>
 
-            {/* Social proof - PWA & Offline */}
-            <motion.div
+            {/* Micro-copy */}
+            <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.8 }}
-              className="flex items-center justify-center gap-2 text-base text-white font-medium mb-12"
+              transition={{ delay: 0.7 }}
+              className="text-sm text-slate-400 mb-12"
             >
-              <span className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-              </span>
-              <span>Fonctionne 100% hors-ligne une fois installé</span>
-            </motion.div>
+              Installable (PWA) · Web + mobile · Annulation en 2 clics
+            </motion.p>
 
             {/* Hero image / Animated App Preview */}
             <motion.div
@@ -781,8 +999,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Problem Section - Emotional Hook */}
-      <ProblemSection />
+      {/* Before/After Section - Emotional Hook */}
+      <BeforeAfterSection />
 
       {/* Features Section */}
       <section id="features" className="py-24 px-4 sm:px-6 lg:px-8">
@@ -895,7 +1113,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* How it works */}
+      {/* How it works - 3 blocs */}
       <section id="how-it-works" className="py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -903,28 +1121,106 @@ export default function LandingPage() {
               Comment ça marche ?
             </h2>
             <p className="text-lg text-slate-400 max-w-2xl mx-auto">
-              Commencez à être productif en 3 étapes simples
+              3 piliers pour reprendre le contrôle de ton temps
             </p>
           </div>
 
-          <div className="max-w-2xl mx-auto space-y-8">
-            <Step
-              number={1}
-              title="Créez vos espaces de travail"
-              description="Organisez vos tâches par contexte : travail, personnel, projets... Chaque espace a son propre univers."
-            />
-            <div className="ml-5 border-l-2 border-dashed border-slate-700 h-8" />
-            <Step
-              number={2}
-              title="Ajoutez vos tâches"
-              description="Créez rapidement vos tâches avec notre Quick Add ou le formulaire complet avec deadlines et sous-tâches."
-            />
-            <div className="ml-5 border-l-2 border-dashed border-slate-700 h-8" />
-            <Step
-              number={3}
-              title="Laissez l'IA vous guider"
-              description="L'IA analyse vos tâches et vous suggère les priorités. Concentrez-vous sur ce qui compte vraiment."
-            />
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Bloc 1: Multi-activités */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="relative group"
+            >
+              <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative bg-slate-800/80 rounded-2xl border border-slate-700/50 p-8 h-full hover:border-blue-500/50 transition-colors">
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center mb-6">
+                  <Layers className="w-7 h-7 text-white" />
+                </div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/30 rounded-full text-blue-300 text-sm font-medium mb-4">
+                  Étape 1
+                </div>
+                <h3 className="text-xl font-bold text-white mb-3">Multi-activités</h3>
+                <p className="text-slate-400 mb-4">
+                  Sépare tes différentes vies en activités distinctes. Fini le mélange !
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <span className="px-3 py-1 bg-slate-700/50 rounded-full text-sm text-slate-300">📚 Cours</span>
+                  <span className="px-3 py-1 bg-slate-700/50 rounded-full text-sm text-slate-300">💼 Taf</span>
+                  <span className="px-3 py-1 bg-slate-700/50 rounded-full text-sm text-slate-300">🏠 Perso</span>
+                  <span className="px-3 py-1 bg-slate-700/50 rounded-full text-sm text-slate-300">🚀 Projet</span>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Bloc 2: Priorisation IA */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+              className="relative group"
+            >
+              <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative bg-slate-800/80 rounded-2xl border border-slate-700/50 p-8 h-full hover:border-purple-500/50 transition-colors">
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mb-6">
+                  <Brain className="w-7 h-7 text-white" />
+                </div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-purple-500/10 border border-purple-500/30 rounded-full text-purple-300 text-sm font-medium mb-4">
+                  Étape 2
+                </div>
+                <h3 className="text-xl font-bold text-white mb-3">Priorisation IA</h3>
+                <p className="text-slate-400 mb-4">
+                  L&apos;IA analyse chaque tâche : urgent ? important ? combien de temps ?
+                </p>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="px-2 py-0.5 bg-red-500/20 text-red-400 rounded text-xs font-medium">Urgent</span>
+                    <span className="text-slate-400">×</span>
+                    <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 rounded text-xs font-medium">Important</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-slate-300">
+                    <Target className="w-4 h-4 text-purple-400" />
+                    <span>Durée estimée : ~45 min</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Bloc 3: Exécution */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3 }}
+              className="relative group"
+            >
+              <div className="absolute -inset-1 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative bg-slate-800/80 rounded-2xl border border-slate-700/50 p-8 h-full hover:border-green-500/50 transition-colors">
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center mb-6">
+                  <Zap className="w-7 h-7 text-white" />
+                </div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/30 rounded-full text-green-300 text-sm font-medium mb-4">
+                  Étape 3
+                </div>
+                <h3 className="text-xl font-bold text-white mb-3">Exécution</h3>
+                <p className="text-slate-400 mb-4">
+                  Rappels intelligents + vue calendrier = tu sais toujours quoi faire.
+                </p>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm text-slate-300">
+                    <Calendar className="w-4 h-4 text-green-400" />
+                    <span>Vue calendrier</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-slate-300">
+                    <Zap className="w-4 h-4 text-green-400" />
+                    <span>Prochaine action : <span className="text-white font-medium">1 tâche</span></span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -949,7 +1245,7 @@ export default function LandingPage() {
               avatar="👩‍💼"
             />
             <Testimonial
-              quote="Enfin une app de tâches qui comprend qu'on a plusieurs casquettes. Les espaces de travail sont géniaux."
+              quote="Enfin une app de tâches qui comprend qu'on a plusieurs casquettes. Les activités par contexte sont géniales."
               author="Thomas Martin"
               role="Freelance"
               avatar="👨‍💻"
@@ -965,91 +1261,7 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-24 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-              Des tarifs simples et transparents
-            </h2>
-            <p className="text-lg text-slate-400 max-w-2xl mx-auto">
-              Commencez gratuitement, évoluez selon vos besoins
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <PricingCard
-              name="Gratuit"
-              description="Pour demarrer en douceur"
-              price="0€"
-              period="/mois"
-              plan="free"
-              ctaText="Commencer gratuit"
-              features={[
-                '3 espaces de travail',
-                '50 taches actives',
-                'Vue calendrier',
-                'Rappels',
-                'Stockage local',
-              ]}
-            />
-
-            <PricingCard
-              name="Pro"
-              description="Pour les professionnels exigeants"
-              price="9,90€"
-              period="/mois"
-              plan="pro"
-              featured
-              ctaText="Essai gratuit 14 jours"
-              features={[
-                'Espaces illimites',
-                'Taches illimitees',
-                'IA Eisenhower',
-                'Estimation duree IA',
-                'Sync cloud multi-appareils',
-                'Rappels',
-                'Export PDF/CSV',
-                'Support prioritaire',
-              ]}
-            />
-
-{/* Plan Team masqué - fonctionnalités non encore implémentées
-            <PricingCard
-              name="Equipe"
-              description="Pour collaborer efficacement"
-              price="19,90€"
-              period="/utilisateur/mois"
-              plan="team"
-              ctaText="Bientot disponible"
-              features={[
-                'Tout le plan Pro',
-                'Espaces partages',
-                'Collaboration temps reel',
-                'Gestion des roles',
-                'Tableau de bord equipe',
-                'Statistiques avancees',
-                'API & Webhooks',
-                'Support dedie',
-              ]}
-            />
-            */}
-          </div>
-
-          {/* FAQ teaser */}
-          <div className="mt-16 text-center">
-            <p className="text-slate-400">
-              Des questions ?{' '}
-              <a href="#faq" className="text-indigo-400 hover:text-indigo-300 underline underline-offset-4">
-                Consultez notre FAQ
-              </a>
-              {' '}ou{' '}
-              <a href="#" className="text-indigo-400 hover:text-indigo-300 underline underline-offset-4">
-                contactez-nous
-              </a>
-            </p>
-          </div>
-        </div>
-      </section>
+      <PricingSection />
 
       {/* FAQ Section */}
       <section id="faq" className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-800/30">

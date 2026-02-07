@@ -52,10 +52,15 @@ export function Sidebar({
       )}>
         <h1 className={cn(
           'font-extrabold flex items-center transition-all',
-          isCollapsed ? 'text-xl justify-center' : 'text-2xl gap-1'
+          isCollapsed ? 'text-xl justify-center' : 'text-2xl gap-0.5'
         )}>
-          <span className="text-indigo-400">✦</span>
-          {!isCollapsed && <span className="bg-gradient-to-r from-indigo-400 to-amber-300 bg-clip-text text-transparent">MultiTasks</span>}
+          <span>✨</span>
+          {!isCollapsed && (
+            <>
+              <span className="text-violet-400">Multi</span>
+              <span className="bg-gradient-to-r from-amber-300 to-yellow-200 bg-clip-text text-transparent">Tasks</span>
+            </>
+          )}
         </h1>
       </div>
 

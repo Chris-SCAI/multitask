@@ -21,9 +21,9 @@ export function NotificationBanner({ onPermissionChange }: NotificationBannerPro
   }, [])
 
   const handleEnable = async () => {
-    const granted = await requestNotificationPermission()
-    setPermission(granted ? 'granted' : 'denied')
-    onPermissionChange?.(granted)
+    const result = await requestNotificationPermission()
+    setPermission(result)
+    onPermissionChange?.(result === 'granted')
   }
 
   const handleDismiss = () => {

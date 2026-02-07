@@ -99,10 +99,10 @@ export function TaskForm({ workspaces, initialTask, onSubmit, onCancel }: TaskFo
         />
       </div>
 
-      {/* Workspace */}
+      {/* Activité */}
       <div>
         <label className="block text-sm font-medium text-white mb-2">
-          Espace de travail
+          Activité
         </label>
         <div className="flex flex-wrap gap-2">
           {workspaces.map((w) => (

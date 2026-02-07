@@ -18,31 +18,31 @@ interface UpgradeModalProps {
 const FEATURE_INFO = {
   workspace: {
     icon: Zap,
-    title: 'Limite d\'espaces atteinte',
-    demoMessage: 'Le mode démo est limité à 1 espace de travail.',
-    freeMessage: 'Le plan gratuit est limité à 3 espaces de travail.',
-    upgradeMessage: 'Passez à Pro pour des espaces illimités !',
+    title: 'Limite d\'activités atteinte',
+    demoMessage: 'Le mode démo est limité à 1 activité.',
+    freeMessage: 'Le plan gratuit est limité à 3 activités.',
+    upgradeMessage: 'Passe à Pro pour des activités illimitées !',
   },
   task: {
     icon: Lock,
     title: 'Limite de tâches atteinte',
     demoMessage: 'Le mode démo est limité à 5 tâches.',
-    freeMessage: 'Le plan gratuit est limité à 50 tâches.',
-    upgradeMessage: 'Passez à Pro pour des tâches illimitées !',
+    freeMessage: 'Le plan gratuit est limité à 60 tâches.',
+    upgradeMessage: 'Passe à Pro pour des tâches illimitées !',
   },
   ai: {
     icon: Sparkles,
-    title: 'Fonctionnalité Pro',
+    title: 'Limite IA atteinte',
     demoMessage: 'L\'assistant IA n\'est pas disponible en mode démo.',
-    freeMessage: 'L\'assistant IA est réservé aux abonnés Pro.',
-    upgradeMessage: 'Passez à Pro pour débloquer l\'IA !',
+    freeMessage: 'Tu as atteint ta limite de 10 priorisations IA/semaine.',
+    upgradeMessage: 'Passe à Pro pour l\'IA illimitée !',
   },
   export: {
     icon: FileDown,
     title: 'Export PDF/CSV',
     demoMessage: 'L\'export n\'est pas disponible en mode démo.',
     freeMessage: 'L\'export PDF/CSV est réservé aux abonnés Pro.',
-    upgradeMessage: 'Passez à Pro pour exporter vos tâches !',
+    upgradeMessage: 'Passe à Pro pour exporter tes tâches !',
   },
 }
 

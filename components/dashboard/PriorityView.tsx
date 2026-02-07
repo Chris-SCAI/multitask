@@ -96,8 +96,8 @@ export function PriorityView({ tasks, workspaces, onToggleTask, onClickTask }: P
     <div className="space-y-8">
       {/* Header */}
       <div className="text-center py-4">
-        <p className="text-sm font-medium text-indigo-300 tracking-widest uppercase mb-2">
-          MultiTasks — Priorités
+        <p className="text-sm font-medium tracking-widest uppercase mb-2">
+          ✨ <span className="text-violet-400">Multi</span><span className="text-amber-300">Tasks</span> — Priorités
         </p>
         <h1 className="text-3xl font-bold text-slate-100">
           Vue par priorité

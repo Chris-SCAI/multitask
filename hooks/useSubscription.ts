@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from './useAuth'
-import { PlanType, PLAN_LIMITS, canAccessProFeatures, canAccessTeamFeatures } from '@/lib/stripe'
+import { PlanType, PLAN_LIMITS, canAccessProFeatures, canAccessTeamFeatures, BillingInterval } from '@/lib/stripe'
 
 export interface Subscription {
   id: string
@@ -134,7 +134,7 @@ export function useSubscription() {
     : 0
 
   // Checkout handler
-  const startCheckout = async (selectedPlan: 'pro' | 'team') => {
+  const startCheckout = async (selectedPlan: 'pro' | 'student' | 'team', billingInterval: BillingInterval = 'monthly') => {
     if (!user) return
 
     try {
@@ -150,7 +150,7 @@ export function useSubscription() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ plan: selectedPlan }),
+        body: JSON.stringify({ plan: selectedPlan, interval: billingInterval }),
       })
 
       const data = await response.json()

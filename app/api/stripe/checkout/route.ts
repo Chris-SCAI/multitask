@@ -42,7 +42,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!process.env.STRIPE_PRICE_PRO || !process.env.STRIPE_PRICE_TEAM) {
+    // Check for at least one pro price configured (monthly or yearly)
+    const hasProPrice = process.env.STRIPE_PRICE_PRO_MONTHLY || process.env.STRIPE_PRICE_PRO || process.env.STRIPE_PRICE_PRO_YEARLY
+    if (!hasProPrice) {
       return NextResponse.json(
         { error: 'Stripe prices not configured' },
         { status: 500 }
@@ -58,18 +60,40 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { plan } = await request.json()
+    const { plan, interval = 'monthly' } = await request.json()
     const { userId, email } = auth
 
     // Validate plan
-    if (!['pro', 'team'].includes(plan)) {
+    if (!['pro', 'student', 'team'].includes(plan)) {
       return NextResponse.json(
         { error: 'Invalid plan' },
         { status: 400 }
       )
     }
 
-    const priceId = plan === 'pro' ? STRIPE_PRICES.pro : STRIPE_PRICES.team
+    // Validate interval
+    if (!['monthly', 'yearly'].includes(interval)) {
+      return NextResponse.json(
+        { error: 'Invalid billing interval' },
+        { status: 400 }
+      )
+    }
+
+    // Determine price ID based on plan and interval
+    let priceId: string
+    if (plan === 'pro') {
+      if (interval === 'yearly' && process.env.STRIPE_PRICE_PRO_YEARLY) {
+        priceId = process.env.STRIPE_PRICE_PRO_YEARLY
+      } else {
+        // Monthly or fallback to legacy
+        priceId = process.env.STRIPE_PRICE_PRO_MONTHLY || process.env.STRIPE_PRICE_PRO!
+      }
+    } else if (plan === 'student') {
+      // Student plan is yearly only
+      priceId = STRIPE_PRICES.student_yearly
+    } else {
+      priceId = STRIPE_PRICES.team
+    }
 
     // Check if user already has a Stripe customer ID
     const { data: existingSubscription } = await getSupabaseAdmin()
@@ -114,8 +138,8 @@ export async function POST(request: NextRequest) {
           quantity: 1,
         },
       ],
-      // 14 days trial for Pro plan only
-      subscription_data: plan === 'pro' ? {
+      // 14 days trial for Pro and Student plans
+      subscription_data: (plan === 'pro' || plan === 'student') ? {
         trial_period_days: 14,
       } : undefined,
       success_url: `${appUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,

@@ -311,9 +311,10 @@ export default function Home() {
         <header className="lg:hidden sticky top-0 z-40 backdrop-blur-2xl bg-gradient-to-b from-slate-900/95 via-slate-900/90 to-slate-900/80 border-b border-slate-600/50 shadow-lg shadow-slate-900/50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-5">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-extrabold flex items-center gap-1">
-              <span className="text-indigo-400">✦</span>
-              <span className="bg-gradient-to-r from-indigo-400 to-amber-300 bg-clip-text text-transparent">MultiTasks</span>
+            <h1 className="text-2xl font-extrabold flex items-center gap-0.5">
+              <span>✨</span>
+              <span className="text-violet-400">Multi</span>
+              <span className="bg-gradient-to-r from-amber-300 to-yellow-200 bg-clip-text text-transparent">Tasks</span>
             </h1>
             <nav className="flex items-center gap-1 p-1.5 bg-slate-800/60 backdrop-blur-sm rounded-2xl border border-slate-600/50">
               <button
@@ -385,10 +386,10 @@ export default function Home() {
               onUpdateTask={updateTask}
             />
 
-            {/* Workspaces */}
+            {/* Activités */}
             <section className="animate-fadeIn">
               <h2 className="text-lg font-bold text-slate-100 mb-4">
-                Espaces de travail
+                Mes activités
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 stagger-children">
                 {workspaces.map(workspace => {
