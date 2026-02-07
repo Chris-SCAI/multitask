@@ -616,6 +616,8 @@ export default function Home() {
         onClose={() => setIsSettingsOpen(false)}
         workspaces={workspaces}
         onWorkspacesChange={handleWorkspacesChange}
+        tasks={tasks}
+        subtasks={allSubtasks}
       />
 
       {/* Task Assistant - Floating chat */}

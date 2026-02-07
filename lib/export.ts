@@ -200,7 +200,6 @@ export function exportToPDF(
   groupedByWorkspace.forEach((wsTasks, wsId) => {
     const workspace = workspaces.find(w => w.id === wsId)
     const wsName = workspace?.name || 'Sans workspace'
-    const wsIcon = workspace?.icon || '📁'
 
     // Check if we need a new page
     if (yPos > 250) {
@@ -208,13 +207,13 @@ export function exportToPDF(
       yPos = 20
     }
 
-    // Workspace header
+    // Workspace header (sans emoji - jsPDF ne les supporte pas)
     doc.setFillColor(241, 245, 249) // Slate-100
     doc.rect(10, yPos - 5, pageWidth - 20, 10, 'F')
     doc.setFontSize(12)
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(71, 85, 105) // Slate-600
-    doc.text(`${wsIcon} ${wsName}`, 14, yPos + 2)
+    doc.text(wsName, 14, yPos + 2)
     doc.setFontSize(10)
     doc.setFont('helvetica', 'normal')
     doc.text(`${wsTasks.length} tâche(s)`, pageWidth - 14, yPos + 2, { align: 'right' })
@@ -311,7 +310,7 @@ export function exportToPDF(
         doc.setFont('helvetica', 'normal')
         doc.setFontSize(9)
         for (const sub of taskSubs) {
-          const icon = sub.completed ? '✓' : '○'
+          const icon = sub.completed ? '[x]' : '[ ]'
           doc.text(`   ${icon} ${sub.title}`, 18, yPos)
           yPos += 5
         }

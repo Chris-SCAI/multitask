@@ -42,6 +42,8 @@ interface SettingsModalProps {
   onClose: () => void
   workspaces: Workspace[]
   onWorkspacesChange: () => void
+  tasks?: Task[]
+  subtasks?: Subtask[]
 }
 
 const EMOJI_OPTIONS = ['🏢', '🎓', '🤖', '🏗️', '🏠', '💪', '💼', '🎨', '🎯', '📊', '🚀', '💡', '🔧', '📱', '🌍', '👥', '📅', '📦', '📋', '📌', '🔥', '⚡', '🌱']
@@ -50,7 +52,7 @@ const COLOR_OPTIONS = ['#ef4444', '#22c55e', '#eab308', '#f97316', '#8b5cf6', '#
 type TabType = 'profile' | 'subscription' | 'ai' | 'workspaces' | 'types' | 'priorities' | 'export'
 type ModelCategory = keyof typeof AVAILABLE_MODELS
 
-export function SettingsModal({ isOpen, onClose, workspaces, onWorkspacesChange }: SettingsModalProps) {
+export function SettingsModal({ isOpen, onClose, workspaces, onWorkspacesChange, tasks: propTasks, subtasks: propSubtasks }: SettingsModalProps) {
   const [activeTab, setActiveTab] = useState<TabType>('profile')
   const { user } = useAuth()
   const { plan, status, isTrialing, daysLeftInTrial, isPro, openPortal, startCheckout } = useSubscription()
@@ -79,15 +81,16 @@ export function SettingsModal({ isOpen, onClose, workspaces, onWorkspacesChange 
       setPriorities(getPriorities())
       setUserNameState(getUserName())
       setUserNameSaved(false)
-      setTasks(getTasks())
-      setSubtasks(getSubtasks())
+      // Use props if provided, otherwise fallback to localStorage
+      setTasks(propTasks || getTasks())
+      setSubtasks(propSubtasks || getSubtasks())
 
       // Load selected model
       const model = getSelectedModel()
       setSelectedModel(model)
       setModelSaved(false)
     }
-  }, [isOpen])
+  }, [isOpen, propTasks, propSubtasks])
 
   const handleSaveUserName = () => {
     setUserName(userName)
