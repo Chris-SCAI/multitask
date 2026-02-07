@@ -1,21 +1,73 @@
 {
-  "name": "MultiTask",
-  "short_name": "MultiTask",
-  "description": "Gère tes casquettes avec style",
-  "start_url": "/",
+  "name": "MultiTasks - Gestionnaire de tâches",
+  "short_name": "MultiTasks",
+  "description": "Gestionnaire de tâches multi-rôles avec IA. Organisez votre vie pro et perso.",
+  "start_url": "/dashboard",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#0f172a",
   "theme_color": "#6366f1",
+  "categories": ["productivity", "utilities"],
+  "lang": "fr",
+  "dir": "ltr",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Dashboard MultiTasks"
+    },
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "MultiTasks sur mobile"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Nouvelle tâche",
+      "short_name": "Ajouter",
+      "description": "Créer une nouvelle tâche rapidement",
+      "url": "/dashboard?action=new",
+      "icons": [{ "src": "/icon-add.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Mes tâches",
+      "short_name": "Tâches",
+      "description": "Voir toutes mes tâches",
+      "url": "/dashboard",
+      "icons": [{ "src": "/icon-list.png", "sizes": "96x96" }]
     }
   ]
 }

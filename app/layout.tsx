@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import ErrorBoundary from '../components/ErrorBoundary'
 import GoogleAnalytics from '../components/analytics/GoogleAnalytics'
+import OfflineIndicator from '../components/pwa/OfflineIndicator'
 
 const siteUrl = 'https://multitasks.fr'
 const siteName = 'MultiTasks'
@@ -89,6 +90,7 @@ export default function RootLayout({
       <body className="antialiased">
         <GoogleAnalytics />
         <ErrorBoundary>{children}</ErrorBoundary>
+        <OfflineIndicator />
       </body>
     </html>
   )
