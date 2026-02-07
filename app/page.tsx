@@ -988,7 +988,7 @@ export default function LandingPage() {
                 '3 espaces de travail',
                 '50 taches actives',
                 'Vue calendrier',
-                'Rappels basiques',
+                'Rappels',
                 'Stockage local',
               ]}
             />
@@ -1007,7 +1007,7 @@ export default function LandingPage() {
                 'IA Eisenhower',
                 'Estimation duree IA',
                 'Sync cloud multi-appareils',
-                'Rappels personnalises',
+                'Rappels',
                 'Export PDF/CSV',
                 'Support prioritaire',
               ]}
