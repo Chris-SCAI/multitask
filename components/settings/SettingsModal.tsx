@@ -14,13 +14,17 @@ import {
   updatePriority,
   getUserName,
   setUserName,
+  getTasks,
+  getSubtasks,
   CustomTaskType,
   CustomPriority
 } from '../../lib/store'
+import { Task, Subtask } from '../../lib/types'
+import { ExportPanel } from '../export/ExportPanel'
 import { Modal } from '../ui/Modal'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
-import { Plus, Trash2, Edit3, Check, X, Briefcase, Tag, AlertTriangle, User, Bot, Sparkles, CreditCard, Crown, Loader2 } from 'lucide-react'
+import { Plus, Trash2, Edit3, Check, X, Briefcase, Tag, AlertTriangle, User, Bot, Sparkles, CreditCard, Crown, Loader2, Download } from 'lucide-react'
 import { useSubscription } from '../../hooks/useSubscription'
 import { useAuth } from '../../hooks/useAuth'
 import { AuthModal } from '../auth/AuthModal'
@@ -43,7 +47,7 @@ interface SettingsModalProps {
 const EMOJI_OPTIONS = ['🏢', '🎓', '🤖', '🏗️', '🏠', '💪', '💼', '🎨', '🎯', '📊', '🚀', '💡', '🔧', '📱', '🌍', '👥', '📅', '📦', '📋', '📌', '🔥', '⚡', '🌱']
 const COLOR_OPTIONS = ['#ef4444', '#22c55e', '#eab308', '#f97316', '#8b5cf6', '#06b6d4', '#3b82f6', '#ec4899', '#14b8a6', '#6366f1', '#94a3b8']
 
-type TabType = 'profile' | 'subscription' | 'ai' | 'workspaces' | 'types' | 'priorities'
+type TabType = 'profile' | 'subscription' | 'ai' | 'workspaces' | 'types' | 'priorities' | 'export'
 type ModelCategory = keyof typeof AVAILABLE_MODELS
 
 export function SettingsModal({ isOpen, onClose, workspaces, onWorkspacesChange }: SettingsModalProps) {
@@ -61,6 +65,8 @@ export function SettingsModal({ isOpen, onClose, workspaces, onWorkspacesChange 
   const [priorities, setPriorities] = useState<CustomPriority[]>([])
   const [userName, setUserNameState] = useState('')
   const [userNameSaved, setUserNameSaved] = useState(false)
+  const [tasks, setTasks] = useState<Task[]>([])
+  const [subtasks, setSubtasks] = useState<Subtask[]>([])
 
   // AI Model selection
   const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL)
@@ -73,6 +79,8 @@ export function SettingsModal({ isOpen, onClose, workspaces, onWorkspacesChange 
       setPriorities(getPriorities())
       setUserNameState(getUserName())
       setUserNameSaved(false)
+      setTasks(getTasks())
+      setSubtasks(getSubtasks())
 
       // Load selected model
       const model = getSelectedModel()
@@ -335,6 +343,14 @@ export function SettingsModal({ isOpen, onClose, workspaces, onWorkspacesChange 
             }`}
           >
             <AlertTriangle size={16} /> Priorités
+          </button>
+          <button
+            onClick={() => { setActiveTab('export'); cancelEdit() }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+              activeTab === 'export' ? 'bg-indigo-500/20 text-indigo-300' : 'text-white hover:text-white'
+            }`}
+          >
+            <Download size={16} /> Export
           </button>
         </div>
 
@@ -669,6 +685,18 @@ export function SettingsModal({ isOpen, onClose, workspaces, onWorkspacesChange 
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Export Tab */}
+        {activeTab === 'export' && (
+          <div>
+            <h3 className="text-lg font-semibold text-slate-100 mb-4">Exporter mes tâches</h3>
+            <ExportPanel
+              tasks={tasks}
+              subtasks={subtasks}
+              workspaces={workspaces}
+            />
           </div>
         )}
       </div>

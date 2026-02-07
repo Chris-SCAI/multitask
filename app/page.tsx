@@ -1008,6 +1008,7 @@ export default function LandingPage() {
                 'Estimation duree IA',
                 'Sync cloud multi-appareils',
                 'Rappels personnalises',
+                'Export PDF/CSV',
                 'Support prioritaire',
               ]}
             />

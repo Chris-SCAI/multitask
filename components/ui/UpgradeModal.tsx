@@ -6,12 +6,12 @@ import { Button } from './Button'
 import { useAuth } from '@/hooks/useAuth'
 import { useSubscription } from '@/hooks/useSubscription'
 import { AuthModal } from '@/components/auth/AuthModal'
-import { Sparkles, Zap, Lock, ArrowRight } from 'lucide-react'
+import { Sparkles, Zap, Lock, ArrowRight, FileDown } from 'lucide-react'
 
 interface UpgradeModalProps {
   isOpen: boolean
   onClose: () => void
-  feature: 'workspace' | 'task' | 'ai'
+  feature: 'workspace' | 'task' | 'ai' | 'export'
   currentLimit?: number
 }
 
@@ -36,6 +36,13 @@ const FEATURE_INFO = {
     demoMessage: 'L\'assistant IA n\'est pas disponible en mode démo.',
     freeMessage: 'L\'assistant IA est réservé aux abonnés Pro.',
     upgradeMessage: 'Passez à Pro pour débloquer l\'IA !',
+  },
+  export: {
+    icon: FileDown,
+    title: 'Export PDF/CSV',
+    demoMessage: 'L\'export n\'est pas disponible en mode démo.',
+    freeMessage: 'L\'export PDF/CSV est réservé aux abonnés Pro.',
+    upgradeMessage: 'Passez à Pro pour exporter vos tâches !',
   },
 }
 
@@ -109,7 +116,7 @@ export function UpgradeModal({ isOpen, onClose, feature, currentLimit }: Upgrade
                 </>
               ) : (
                 <>
-                  Passer à Pro - 9€/mois
+                  Passer à Pro - 9,90€/mois
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </>
               )}
