@@ -37,14 +37,7 @@ export function useSubscription() {
         .single()
 
       // PGRST116 = no rows found, 42P01 = table doesn't exist
-      if (error && error.code !== 'PGRST116') {
-        // Table might not exist yet - silently ignore 404/42P01 errors
-        if (error.code === '42P01' || error.message?.includes('404') || error.message?.includes('does not exist')) {
-          console.warn('Subscriptions table not found - using default free plan')
-        } else {
-          console.error('Error fetching subscription:', error)
-        }
-      }
+      // Silently ignore expected errors and use default free plan
 
       if (data) {
         setSubscription({
@@ -72,8 +65,7 @@ export function useSubscription() {
           createdAt: new Date().toISOString(),
         })
       }
-    } catch (err) {
-      console.error('Subscription fetch error:', err)
+    } catch {
       // On error, default to free plan
       setSubscription({
         id: '',
@@ -120,9 +112,8 @@ export function useSubscription() {
       return () => {
         supabase.removeChannel(channel)
       }
-    } catch (err) {
+    } catch {
       // Silently ignore if realtime subscription fails
-      console.warn('Could not subscribe to subscription changes:', err)
     }
   }, [user, fetchSubscription])
 
@@ -170,7 +161,6 @@ export function useSubscription() {
         throw new Error(data.error || 'Checkout failed')
       }
     } catch (err) {
-      console.error('Checkout error:', err)
       throw err
     }
   }
@@ -203,7 +193,6 @@ export function useSubscription() {
         throw new Error(data.error || 'Portal access failed')
       }
     } catch (err) {
-      console.error('Portal error:', err)
       throw err
     }
   }

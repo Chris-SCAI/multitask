@@ -65,8 +65,7 @@ export function UpgradeModal({ isOpen, onClose, feature, currentLimit }: Upgrade
     setLoading(true)
     try {
       await startCheckout('pro')
-    } catch (error) {
-      console.error('Checkout error:', error)
+    } catch {
       alert('Erreur lors du checkout. Veuillez réessayer.')
     } finally {
       setLoading(false)

@@ -13,7 +13,6 @@ export async function getWorkspacesFromDB(): Promise<Workspace[]> {
     .order('order', { ascending: true })
 
   if (error) {
-    console.error('Error fetching workspaces:', error)
     return []
   }
 
@@ -45,7 +44,6 @@ export async function createWorkspaceInDB(workspace: Omit<Workspace, 'id' | 'use
     .single()
 
   if (error) {
-    console.error('Error creating workspace:', error)
     return null
   }
 
@@ -72,7 +70,6 @@ export async function updateWorkspaceInDB(id: string, updates: Partial<Workspace
     .eq('id', id)
 
   if (error) {
-    console.error('Error updating workspace:', error)
     return false
   }
   return true
@@ -85,7 +82,6 @@ export async function deleteWorkspaceFromDB(id: string): Promise<boolean> {
     .eq('id', id)
 
   if (error) {
-    console.error('Error deleting workspace:', error)
     return false
   }
   return true
@@ -102,7 +98,6 @@ export async function getTasksFromDB(): Promise<Task[]> {
     .order('created_at', { ascending: false })
 
   if (error) {
-    console.error('Error fetching tasks:', error)
     return []
   }
 
@@ -150,7 +145,6 @@ export async function createTaskInDB(task: Omit<Task, 'id' | 'createdAt' | 'upda
     .single()
 
   if (error) {
-    console.error('Error creating task:', error)
     return null
   }
 
@@ -193,7 +187,6 @@ export async function updateTaskInDB(id: string, updates: Partial<Task>): Promis
     .eq('id', id)
 
   if (error) {
-    console.error('Error updating task:', error)
     return false
   }
   return true
@@ -206,7 +199,6 @@ export async function deleteTaskFromDB(id: string): Promise<boolean> {
     .eq('id', id)
 
   if (error) {
-    console.error('Error deleting task:', error)
     return false
   }
   return true
@@ -234,7 +226,6 @@ export async function toggleTaskCompleteInDB(id: string): Promise<Task | null> {
     .single()
 
   if (error) {
-    console.error('Error toggling task:', error)
     return null
   }
 
@@ -268,7 +259,6 @@ export async function getSubtasksFromDB(): Promise<Subtask[]> {
     .order('order', { ascending: true })
 
   if (error) {
-    console.error('Error fetching subtasks:', error)
     return []
   }
 
@@ -303,7 +293,6 @@ export async function createSubtaskInDB(taskId: string, title: string): Promise<
     .single()
 
   if (error) {
-    console.error('Error creating subtask:', error)
     return null
   }
 
@@ -333,7 +322,6 @@ export async function toggleSubtaskCompleteInDB(id: string): Promise<Subtask | n
     .single()
 
   if (error) {
-    console.error('Error toggling subtask:', error)
     return null
   }
 
@@ -353,7 +341,6 @@ export async function deleteSubtaskFromDB(id: string): Promise<boolean> {
     .eq('id', id)
 
   if (error) {
-    console.error('Error deleting subtask:', error)
     return false
   }
   return true

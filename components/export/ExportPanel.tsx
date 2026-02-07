@@ -21,6 +21,7 @@ export function ExportPanel({ tasks, subtasks, workspaces }: ExportPanelProps) {
   const [exporting, setExporting] = useState<'pdf' | 'csv' | null>(null)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [success, setSuccess] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   const featureAccess = useFeatureAccess()
   const isPro = featureAccess.isPro || featureAccess.isTeam
@@ -50,14 +51,16 @@ export function ExportPanel({ tasks, subtasks, workspaces }: ExportPanelProps) {
     }
 
     setExporting('csv')
+    setError(null)
     try {
       // Small delay for UX
       await new Promise(resolve => setTimeout(resolve, 300))
       exportToCSV(tasks, subtasks, workspaces, options)
       setSuccess('CSV exporté avec succès !')
       setTimeout(() => setSuccess(null), 3000)
-    } catch (error) {
-      console.error('Export CSV error:', error)
+    } catch {
+      setError('Erreur lors de l\'export CSV')
+      setTimeout(() => setError(null), 5000)
     } finally {
       setExporting(null)
     }
@@ -70,13 +73,15 @@ export function ExportPanel({ tasks, subtasks, workspaces }: ExportPanelProps) {
     }
 
     setExporting('pdf')
+    setError(null)
     try {
       await new Promise(resolve => setTimeout(resolve, 300))
       exportToPDF(tasks, subtasks, workspaces, options)
       setSuccess('PDF exporté avec succès !')
       setTimeout(() => setSuccess(null), 3000)
-    } catch (error) {
-      console.error('Export PDF error:', error)
+    } catch {
+      setError('Erreur lors de l\'export PDF')
+      setTimeout(() => setError(null), 5000)
     } finally {
       setExporting(null)
     }
@@ -118,6 +123,13 @@ export function ExportPanel({ tasks, subtasks, workspaces }: ExportPanelProps) {
         <div className="flex items-center gap-2 p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-green-400">
           <CheckCircle2 size={18} />
           <span>{success}</span>
+        </div>
+      )}
+
+      {/* Error message */}
+      {error && (
+        <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400">
+          <span>{error}</span>
         </div>
       )}
 

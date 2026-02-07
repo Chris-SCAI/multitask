@@ -33,7 +33,6 @@ export function useReminders({ tasks, enabled }: UseRemindersOptions) {
 
     // Si déjà passé (dans les 2 dernières minutes), notifier immédiatement
     if (delayMs < 0 && delayMs > -120000) {
-      console.log(`[Reminders] 🔔 Immediate notification for "${task.title}" (missed by ${Math.abs(delayMs)}ms)`)
       sendNotification(`⏰ Rappel : ${task.title}`, {
         body: task.description || 'Il est temps de s\'en occuper !',
         tag: `reminder-${task.id}`,
@@ -51,10 +50,7 @@ export function useReminders({ tasks, enabled }: UseRemindersOptions) {
         clearTimeout(existingTimeout)
       }
 
-      console.log(`[Reminders] ⏱️ Scheduling "${task.title}" in ${Math.round(delayMs/1000)}s (exact time)`)
-      
       const timeout = setTimeout(() => {
-        console.log(`[Reminders] 🔔 Exact notification for "${task.title}"`)
         sendNotification(`⏰ Rappel : ${task.title}`, {
           body: task.description || 'Il est temps de s\'en occuper !',
           tag: `reminder-${task.id}`,
@@ -75,8 +71,6 @@ export function useReminders({ tasks, enabled }: UseRemindersOptions) {
       return
     }
 
-    console.log(`[Reminders] Scheduling ${tasks.length} tasks...`)
-    
     // Programmer chaque tâche avec rappel
     tasks.forEach(task => {
       const currentReminderDate = task.reminderDate ? new Date(task.reminderDate).toISOString() : ''
@@ -84,7 +78,6 @@ export function useReminders({ tasks, enabled }: UseRemindersOptions) {
       
       // Si la date de rappel a changé, réinitialiser le statut de notification
       if (currentReminderDate !== lastReminderDate) {
-        console.log(`[Reminders] Date changed for "${task.title}", resetting notification status`)
         notifiedTasksRef.current.delete(task.id)
         // Annuler l'ancien timeout
         const existingTimeout = timeoutsRef.current.get(task.id)
